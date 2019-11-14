@@ -34,10 +34,6 @@ public class NetSuiteServiceTest extends NetSuiteBaseTest {
         NetSuiteDataStore dataStoreLocal = new NetSuiteDataStore();
         dataStoreLocal.setApiVersion(ApiVersion.V2018_2);
 
-        // Missing endpoint
-        Assertions.assertThrows(NetSuiteException.class, () -> service.connect(dataStoreLocal));
-        dataStoreLocal.setEndpoint(NETSUITE_ENDPOINT_URL);
-
         // Missing account
         Assertions.assertThrows(NetSuiteException.class, () -> service.connect(dataStoreLocal));
 
@@ -62,10 +58,7 @@ public class NetSuiteServiceTest extends NetSuiteBaseTest {
     public void testConnectFailedMissingTokenBasedCredentials() {
         log.info("Integration test 'test failed missing token based credentials' start ");
         NetSuiteDataStore dataStoreLocal = new NetSuiteDataStore();
-
-        // Missing endpoint
-        Assertions.assertThrows(NetSuiteException.class, () -> service.connect(dataStoreLocal));
-        dataStoreLocal.setEndpoint("https://webservices.netsuite.com/services/NetSuitePort_2016_2");
+        dataStoreLocal.setApiVersion(ApiVersion.V2018_2);
 
         // Missing account
         Assertions.assertThrows(NetSuiteException.class, () -> service.connect(dataStoreLocal));
@@ -90,9 +83,8 @@ public class NetSuiteServiceTest extends NetSuiteBaseTest {
         dataStoreLocal.setTokenId(token.getUsername());
         Assertions.assertThrows(NetSuiteException.class, () -> service.connect(dataStoreLocal));
 
-        // Api version is different from endpoint.
-        dataStoreLocal.setApiVersion(ApiVersion.V2018_2);
+        // OK
         dataStoreLocal.setTokenSecret(token.getPassword());
-        Assertions.assertThrows(NetSuiteException.class, () -> service.connect(dataStoreLocal));
+        Assertions.assertDoesNotThrow(() -> service.connect(dataStoreLocal));
     }
 }

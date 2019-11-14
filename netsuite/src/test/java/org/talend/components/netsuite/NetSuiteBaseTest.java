@@ -56,8 +56,6 @@ public abstract class NetSuiteBaseTest {
 
     public static final String TEST_COLLECTOR = "TestCollector";
 
-    protected static String NETSUITE_ENDPOINT_URL;
-
     protected static String NETSUITE_ACCOUNT;
 
     protected static String NETSUITE_ROLE_ID;
@@ -84,14 +82,13 @@ public abstract class NetSuiteBaseTest {
         Server token = decrypter.find("netsuite.token");
         dataStore = new NetSuiteDataStore();
         dataStore.setEnableCustomization(false);
+        dataStore.setApiVersion(ApiVersion.V2018_2);
         dataStore.setAccount(NETSUITE_ACCOUNT);
-        dataStore.setEndpoint(NETSUITE_ENDPOINT_URL);
         dataStore.setLoginType(LoginType.TBA);
         dataStore.setConsumerKey(consumer.getUsername());
         dataStore.setConsumerSecret(consumer.getPassword());
         dataStore.setTokenId(token.getUsername());
         dataStore.setTokenSecret(token.getPassword());
-        dataStore.setApiVersion(ApiVersion.V2018_2);
         service = COMPONENT.findService(NetSuiteService.class);
         clientService = service.getClientService(dataStore);
         messages = COMPONENT.findService(Messages.class);
@@ -102,7 +99,6 @@ public abstract class NetSuiteBaseTest {
         try (InputStream is = ClassLoader.getSystemResourceAsStream("connection.properties")) {
             Properties props = new Properties();
             props.load(is);
-            NETSUITE_ENDPOINT_URL = props.getProperty("netsuite.endpoint.url", "");
             NETSUITE_ACCOUNT = props.getProperty("netsuite.account", "");
             NETSUITE_ROLE_ID = props.getProperty("netsuite.roleId", "");
         }

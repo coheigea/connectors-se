@@ -14,6 +14,7 @@ package org.talend.components.netsuite.datastore;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import org.talend.components.netsuite.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
@@ -33,20 +34,13 @@ import java.io.Serializable;
 @DataStore("NetSuiteConnection")
 @Checkable(UIActionService.HEALTH_CHECK)
 @GridLayouts({
-        @GridLayout({ @GridLayout.Row({ "endpoint" }), @GridLayout.Row({ "apiVersion" }), @GridLayout.Row({ "loginType" }),
-                @GridLayout.Row({ "email" }), @GridLayout.Row({ "password" }), @GridLayout.Row({ "role" }),
-                @GridLayout.Row({ "account" }), @GridLayout.Row({ "applicationId" }),
-                @GridLayout.Row({ "consumerKey", "consumerSecret" }), @GridLayout.Row({ "tokenId", "tokenSecret" }) }),
+        @GridLayout({ @GridLayout.Row({ "apiVersion" }), @GridLayout.Row({ "loginType" }), @GridLayout.Row({ "email" }),
+                @GridLayout.Row({ "password" }), @GridLayout.Row({ "role" }), @GridLayout.Row({ "account" }),
+                @GridLayout.Row({ "applicationId" }), @GridLayout.Row({ "consumerKey", "consumerSecret" }),
+                @GridLayout.Row({ "tokenId", "tokenSecret" }) }),
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "enableCustomization" }) }) })
 @Documentation("Provides all needed properties for establishing connection")
 public class NetSuiteDataStore implements Serializable {
-
-    @Option
-    @Required
-    @Pattern("^https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)")
-    @DefaultValue("https://webservices.netsuite.com/services/NetSuitePort_2018_2")
-    @Documentation("NetSuite endpoint to connect")
-    private String endpoint;
 
     @Option
     @DefaultValue("V2018_2")
@@ -114,22 +108,20 @@ public class NetSuiteDataStore implements Serializable {
 
     /**
      * Supported NetSuite API versions.
-     *
      */
     @AllArgsConstructor
     public enum ApiVersion {
-        V2018_2("2018.2");
+        V2018_2("2018.2", "https://webservices.netsuite.com/services/NetSuitePort_2018_2");
 
+        @Getter
         private String version;
 
-        public String getVersion() {
-            return this.version;
-        }
+        @Getter
+        private String endpoint;
     }
 
     /**
      * Supported Login Types.
-     *
      */
     public enum LoginType {
         BASIC,

@@ -69,7 +69,7 @@ public class NetSuiteEndpoint {
      * @throws NetSuiteException if connection configuration not valid
      */
     public ConnectionConfig createConnectionConfig(NetSuiteDataStore properties) throws NetSuiteException {
-        if (StringUtils.isEmpty(properties.getEndpoint())) {
+        if (StringUtils.isEmpty(properties.getApiVersion().getEndpoint())) {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.endpointUrlRequired());
         }
         if (StringUtils.isEmpty(properties.getAccount())) {
@@ -110,16 +110,16 @@ public class NetSuiteEndpoint {
                     properties.getConsumerSecret(), properties.getTokenId(), properties.getTokenSecret());
         }
 
-        NetSuiteVersion endpointApiVersion = NetSuiteVersion.detectVersion(properties.getEndpoint());
+        NetSuiteVersion endpointApiVersion = NetSuiteVersion.detectVersion(properties.getApiVersion().getEndpoint());
         NetSuiteVersion apiVersion = NetSuiteVersion.parseVersion(properties.getApiVersion());
 
         if (!endpointApiVersion.isSameMajor(apiVersion)) {
-            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR),
-                    i18n.endpointUrlApiVersionMismatch(properties.getEndpoint(), properties.getApiVersion().getVersion()));
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.CLIENT_ERROR), i18n.endpointUrlApiVersionMismatch(
+                    properties.getApiVersion().getEndpoint(), properties.getApiVersion().getVersion()));
         }
 
-        ConnectionConfig connectionConfig = new ConnectionConfig(properties.getEndpoint(), apiVersion.getMajor(), credentials,
-                tokenPassport, properties.isEnableCustomization());
+        ConnectionConfig connectionConfig = new ConnectionConfig(properties.getApiVersion().getEndpoint(), apiVersion.getMajor(),
+                credentials, tokenPassport, properties.isEnableCustomization());
         return connectionConfig;
     }
 
