@@ -123,7 +123,7 @@ public class NetSuiteOutputProcessor implements Serializable {
     /**
      * Process and write given list of <code>Record</code>s.
      *
-     * @param RecordList list of records to be processed
+     * @param recordList list of records to be processed
      */
     private void write(List<Record> recordList) {
         if (recordList.isEmpty()) {
@@ -138,11 +138,6 @@ public class NetSuiteOutputProcessor implements Serializable {
         inputRecordList.clear();
     }
 
-    /**
-     * Process NetSuite write response and produce result record for outgoing flow.
-     *
-     * @param record which was submitted
-     */
     private void processWriteResponse(NsWriteResponse<?> response) {
         if (!response.getStatus().isSuccess()) {
             NetSuiteClientService.checkError(response.getStatus());

@@ -41,10 +41,16 @@ public class NsSearchResult<RecT> {
 
     private Integer totalPages;
 
-    private Integer pageIndex;
-
     private String searchId;
 
+    /**
+     * current page
+     */
+    private Integer pageIndex;
+
+    /**
+     * contains records from the current page
+     */
     private List<RecT> recordList;
 
     public NsSearchResult(NsStatus status) {

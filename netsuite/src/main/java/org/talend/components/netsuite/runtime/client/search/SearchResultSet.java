@@ -12,11 +12,14 @@
  */
 package org.talend.components.netsuite.runtime.client.search;
 
+import lombok.Getter;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
+import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NsSearchResult;
 import org.talend.components.netsuite.runtime.client.ResultSet;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
-import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
+import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 
 import java.util.Collections;
@@ -35,57 +38,66 @@ import static java.util.stream.Collectors.toCollection;
  */
 public class SearchResultSet<R> implements ResultSet<R> {
 
-    /** NetSuite client which this result set is owned by. */
+    /**
+     * NetSuite client which this result set is owned by.
+     */
     private NetSuiteClientService<?> clientService;
 
-    /** Descriptor of target record type. */
-    private RecordTypeDesc recordTypeDesc;
+    /**
+     * Descriptor of target record type.
+     */
+    @Getter
+    private RecordTypeInfo recordTypeDesc;
 
-    /** Descriptor of target search record type. */
+    /**
+     * Descriptor of target search record type.
+     */
     private SearchRecordTypeDesc searchRecordTypeDesc;
 
     /** NetSuite specific identifier of search. */
-    private String searchId;
+    // private String searchId;
 
-    /** Current search result being processed. */
+    /**
+     * Current search result being processed.
+     */
     private NsSearchResult<R> result;
 
-    /** List of records for current search result. */
+    /**
+     * List of records for current search result.
+     */
     private List<R> recordList;
 
-    /** Iterator of records for current search result. */
+    /**
+     * Iterator of records for current search result.
+     */
     private Iterator<R> recordIterator;
 
-    /** Last retrieved record. */
+    /**
+     * Last retrieved record.
+     */
     private R current;
 
-    public SearchResultSet(NetSuiteClientService<?> clientService, RecordTypeDesc recordTypeDesc,
-            SearchRecordTypeDesc searchRecordTypeDesc, NsSearchResult<R> result) {
+    /**
+     * set it to get only particular range of pages
+     */
+    private PageSelection pageSelection;
 
+    public SearchResultSet(NetSuiteClientService<?> clientService, String recordTypeName, NsSearchResult<R> result,
+            PageSelection pageSelection) {
         this.clientService = clientService;
-        this.recordTypeDesc = recordTypeDesc;
-        this.searchRecordTypeDesc = searchRecordTypeDesc;
+        this.pageSelection = pageSelection;
+        recordTypeDesc = clientService.getMetaDataSource().getRecordType(recordTypeName);
+        searchRecordTypeDesc = clientService.getMetaDataSource().getSearchRecordType(recordTypeName);
+        // search not found or not supported
+        if (searchRecordTypeDesc == null) {
+            throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+                    clientService.getI18n().searchRecordNotFound(recordTypeName));
+        }
+
         this.result = result;
 
-        searchId = result.getSearchId();
         recordList = prepareRecordList();
         recordIterator = recordList.iterator();
-    }
-
-    public NetSuiteClientService<?> getClientService() {
-        return clientService;
-    }
-
-    public RecordTypeDesc getRecordTypeDesc() {
-        return recordTypeDesc;
-    }
-
-    public SearchRecordTypeDesc getSearchRecordTypeDesc() {
-        return searchRecordTypeDesc;
-    }
-
-    public String getSearchId() {
-        return searchId;
     }
 
     @Override
@@ -112,10 +124,10 @@ public class SearchResultSet<R> implements ResultSet<R> {
      * @return {@code true} if there are more results, {@code false} otherwise
      */
     protected boolean hasMore() {
-        if (this.result == null || result.getPageIndex() == null || result.getTotalPages() == null) {
+        if (result == null || result.getPageIndex() == null || result.getTotalPages() == null) {
             return false;
         }
-        return result.getPageIndex().intValue() < result.getTotalPages().intValue();
+        return result.getPageIndex() < pageSelection.getPageOffset() + pageSelection.getPageCount() - 1;
     }
 
     /**
@@ -124,8 +136,14 @@ public class SearchResultSet<R> implements ResultSet<R> {
      * @return list of records from retrieved search result
      */
     protected List<R> getMoreRecords() {
+        String searchId = result.getSearchId();
         if (searchId != null) {
-            int nextPageIndex = result.getPageIndex().intValue() + 1;
+            int nextPageIndex = result.getPageIndex() + 1;
+            if (result.getPageIndex() < pageSelection.getPageOffset()) {
+                nextPageIndex = pageSelection.getPageOffset();
+            } else if (result.getPageIndex() >= pageSelection.getPageOffset() + pageSelection.getPageCount()) {
+                return Collections.emptyList();
+            }
             NsSearchResult<R> nextPageResult = clientService.searchMoreWithId(searchId, nextPageIndex);
             if (!nextPageResult.isSuccess()) {
                 NetSuiteClientService.checkError(nextPageResult.getStatus());
@@ -143,13 +161,13 @@ public class SearchResultSet<R> implements ResultSet<R> {
      */
     protected List<R> prepareRecordList() {
         List<R> recordList = result.getRecordList();
-        if (recordList == null || recordList.isEmpty()) {
+        if (recordList == null || recordList.isEmpty() || result.getPageIndex() < pageSelection.getPageOffset()
+                || result.getPageIndex() > pageSelection.getPageOffset() + pageSelection.getPageCount() - 1) {
             return Collections.emptyList();
         }
-        Predicate<R> checkRecordTypeClass = r -> r.getClass() == recordTypeDesc.getRecordClass();
+        Predicate<R> checkRecordTypeClass = r -> r.getClass() == recordTypeDesc.getRecordType().getRecordClass();
         return BasicRecordType.ITEM.getType().equals(searchRecordTypeDesc.getType())
                 ? recordList.stream().filter(checkRecordTypeClass).collect(toCollection(LinkedList::new))
                 : recordList;
     }
-
 }

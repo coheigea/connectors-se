@@ -12,7 +12,12 @@
  */
 package org.talend.components.netsuite.source;
 
+import lombok.Setter;
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
+import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
+import org.talend.components.netsuite.runtime.client.NsSearchResult;
+import org.talend.components.netsuite.runtime.client.search.PageSelection;
+import org.talend.components.netsuite.runtime.client.search.SearchResultSet;
 import org.talend.components.netsuite.service.Messages;
 import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.sdk.component.api.component.Icon;
@@ -26,10 +31,11 @@ import org.talend.sdk.component.api.input.Split;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
+import javax.annotation.PostConstruct;
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
-
-import static java.util.Collections.singletonList;
 
 @Version(1)
 @Icon(value = Icon.IconType.NETSUITE)
@@ -45,6 +51,12 @@ public class NetSuiteInputMapper implements Serializable {
 
     private final Messages i18n;
 
+    @Setter
+    private NsSearchResult<?> rs;
+
+    @Setter
+    private PageSelection pageSelection;
+
     public NetSuiteInputMapper(@Option("configuration") final NetSuiteInputProperties configuration,
             final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory, final Messages i18n) {
         this.configuration = configuration;
@@ -53,18 +65,45 @@ public class NetSuiteInputMapper implements Serializable {
         this.i18n = i18n;
     }
 
+    @PostConstruct
+    public void init() {
+        NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet().getDataStore());
+        NetSuiteInputSearcher searcher = new NetSuiteInputSearcher(configuration, clientService);
+        rs = searcher.search();
+    }
+
     @Assessor
     public long estimateSize() {
-        return 1L;
+        return rs.getTotalPages();
     }
 
     @Split
     public List<NetSuiteInputMapper> split(@PartitionSize final long bundles) {
-        return singletonList(this);
+        if (bundles == 0)
+            return Collections.singletonList(this);
+
+        int threads = (int) (rs.getTotalPages() / bundles);
+        List<NetSuiteInputMapper> res = new LinkedList<>();
+        for (int i = 0; i < threads; i++) {
+            NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, service, recordBuilderFactory, i18n);
+            mapper.setRs(rs);
+            mapper.setPageSelection(new PageSelection((int) (bundles * i) + 1, (int) bundles));
+            res.add(mapper);
+        }
+        if (threads * bundles < rs.getTotalPages()) {
+            NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, service, recordBuilderFactory, i18n);
+            mapper.setRs(rs);
+            mapper.setPageSelection(new PageSelection((int) bundles * threads + 1, rs.getTotalPages() - (int) bundles * threads));
+            res.add(mapper);
+        }
+        return res;
     }
 
     @Emitter
     public NetSuiteInputSource createWorker() {
-        return new NetSuiteInputSource(configuration, service, recordBuilderFactory, i18n);
+        NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet().getDataStore());
+        String recordTypeName = configuration.getDataSet().getRecordType();
+        SearchResultSet<?> srs = new SearchResultSet<>(clientService, recordTypeName, rs, pageSelection);
+        return new NetSuiteInputSource(configuration, service, recordBuilderFactory, i18n, srs);
     }
 }

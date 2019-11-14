@@ -66,8 +66,6 @@ public abstract class NetSuiteBaseTest {
 
     protected static NetSuiteDataStore dataStore;
 
-    protected NetSuiteDataSet dataSet;
-
     protected static NetSuiteService service;
 
     protected static Messages messages;
@@ -123,8 +121,8 @@ public abstract class NetSuiteBaseTest {
                 .to("collector").build().run();
     }
 
-    protected void buildAndRunCollectorJob(NetSuiteOutputProperties properties, Record record) {
-        TestEmitter.addRecord(record);
+    protected void buildAndRunCollectorJob(NetSuiteOutputProperties properties, List<Record> records) {
+        records.forEach(TestEmitter::addRecord);
         buildAndRunPipeline(getComponentName(TEST_FAMILY_NAME, TEST_EMITTER),
                 getComponentWithConfig(getComponentName(FAMILY_NAME, COLLECTOR), getQueryProperties(properties)));
         TestEmitter.reset();
@@ -142,6 +140,22 @@ public abstract class NetSuiteBaseTest {
     }
 
     private <T> String getQueryProperties(T properties) {
-        return configurationByExample().forInstance(properties).configured().toQueryString();
+        return configurationByExample().forInstance(properties).configured().toQueryString() + "&configuration.$maxBatchSize=100";
+    }
+
+    protected NetSuiteOutputProperties createOutputProperties() {
+        NetSuiteOutputProperties outputProperties = new NetSuiteOutputProperties();
+        NetSuiteDataSet dataSet = new NetSuiteDataSet();
+        dataSet.setDataStore(dataStore);
+        outputProperties.setDataSet(dataSet);
+        return outputProperties;
+    }
+
+    protected NetSuiteInputProperties createInputProperties() {
+        NetSuiteInputProperties inputProperties = new NetSuiteInputProperties();
+        NetSuiteDataSet dataSet = new NetSuiteDataSet();
+        dataSet.setDataStore(dataStore);
+        inputProperties.setDataSet(dataSet);
+        return inputProperties;
     }
 }

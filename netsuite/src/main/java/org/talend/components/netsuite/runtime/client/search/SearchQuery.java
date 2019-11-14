@@ -265,7 +265,7 @@ public class SearchQuery<SearchT, RecT> {
      * @throws NetSuiteException if an error occurs during updating of search record
      */
     @SuppressWarnings("unchecked")
-    public SearchT toNativeQuery() {
+    private SearchT toNativeQuery() {
         initSearch();
 
         BasicRecordType basicRecordType = BasicRecordType.getByType(searchRecordTypeDesc.getType());
@@ -318,15 +318,17 @@ public class SearchQuery<SearchT, RecT> {
      *
      * @return result set
      */
-    public SearchResultSet<RecT> search() {
+    public NsSearchResult<RecT> search() {
         Object searchRecord = toNativeQuery();
         NsSearchResult<RecT> result = clientService.search(searchRecord);
         if (!result.isSuccess()) {
             NetSuiteClientService.checkError(result.getStatus());
         }
-        SearchResultSet<RecT> resultSet = new SearchResultSet<>(clientService, recordTypeInfo.getRecordType(),
-                searchRecordTypeDesc, result);
-        return resultSet;
+        return result;
+        // SearchResultSet<RecT> resultSet = new SearchResultSet<>(
+        // clientService, recordTypeName,
+        // result);
+        // return resultSet;
     }
 
 }
