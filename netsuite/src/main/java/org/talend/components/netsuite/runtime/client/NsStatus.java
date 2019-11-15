@@ -17,13 +17,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class NsStatus {
+public class NsStatus implements Serializable {
 
     private boolean isSuccess;
 
@@ -33,7 +34,7 @@ public class NsStatus {
     @NoArgsConstructor
     @AllArgsConstructor
     @ToString
-    public static class Detail {
+    public static class Detail implements Serializable {
 
         private Type type;
 

@@ -14,8 +14,10 @@ package org.talend.components.netsuite.runtime.client.search;
 
 import lombok.Value;
 
+import java.io.Serializable;
+
 @Value
-public class PageSelection {
+public class PageSelection implements Serializable {
 
     int pageOffset;
 

@@ -6,6 +6,7 @@
 
     <bindings>
         <globalBindings typesafeEnumMaxMembers="2000">
+        	<xjc:serializable />
         </globalBindings>
         <bindings scd="x-schema::tns" xmlns:tns="urn:types.inventory_2018_2.transactions.webservices.netsuite.com">
             <schemaBindings>

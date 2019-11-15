@@ -16,6 +16,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -30,7 +31,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @ToString
-public class NsSearchResult<RecT> {
+public class NsSearchResult<RecT> implements Serializable {
 
     /** Status of 'search' operation. */
     private NsStatus status;

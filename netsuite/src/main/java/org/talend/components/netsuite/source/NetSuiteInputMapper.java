@@ -70,6 +70,8 @@ public class NetSuiteInputMapper implements Serializable {
         NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet().getDataStore());
         NetSuiteInputSearcher searcher = new NetSuiteInputSearcher(configuration, clientService);
         rs = searcher.search();
+        // this value is used in case of no splitting
+        pageSelection = new PageSelection(1, rs.getTotalPages());
     }
 
     @Assessor
