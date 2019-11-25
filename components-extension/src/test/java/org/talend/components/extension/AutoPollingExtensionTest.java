@@ -15,11 +15,15 @@ package org.talend.components.extension;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.talend.components.extension.components.ValidConnector;
+import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit.BaseComponentsHandler;
 import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
 
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
 @Slf4j
@@ -31,13 +35,14 @@ public class AutoPollingExtensionTest {
 
     @Test
     public void test() {
+        componentsHandler.injectServices(this);
 
         ValidConnector.TestConfig config = new ValidConnector.TestConfig();
 
         final String configStr = configurationByExample().forInstance(config).configured().toQueryString();
 
         Job.components() //
-                .component("emitter", "Test://InputClone?" + configStr) //
+                .component("emitter", "Test://InputPolling?" + configStr) //
                 .component("out", "test://collector") //
                 .connections() //
                 .from("emitter") //
@@ -45,7 +50,12 @@ public class AutoPollingExtensionTest {
                 .build() //
                 .run();
 
-        log.info("ZZZZZZZZZZZZZZZZZZZZZ YPL");
+        final List<Record> records = componentsHandler.getCollectedData(Record.class);
+
+        log.info("Retrieve "+records.size()+" records.");
+        assertEquals(1, records.size());
+
+        log.info("FIN -------------------------------------------------------------------------------");
 
     }
 

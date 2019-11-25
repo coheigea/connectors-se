@@ -12,6 +12,7 @@
  */
 package org.talend.components.extension.components;
 
+import lombok.RequiredArgsConstructor;
 import org.talend.components.extension.Pollable;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -22,25 +23,39 @@ import org.talend.sdk.component.api.input.Emitter;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.service.Service;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Version
 @Icon(value = Icon.IconType.STAR)
 @Emitter(name = "Input")
 @Pollable
+@RequiredArgsConstructor
 @Documentation("Valid input test connector")
 public class ValidConnector implements Serializable {
 
+    public static final AtomicInteger REF_COUNTING = new AtomicInteger();
+
     private final TestConfig config;
 
-    public ValidConnector(TestConfig config) {
-        this.config = config;
-    }
+    private final RecordBuilderFactory recordBuilderFactory;
 
     @Producer
     public Record next() {
-        return null;
+        final int counter = REF_COUNTING.incrementAndGet();
+        if (counter % 2 == 0 || counter >= 5) {
+            return null;
+        }
+        return getRecord();
     }
 
     public final static class TestConfig {
@@ -70,6 +85,15 @@ public class ValidConnector implements Serializable {
         @Option
         private String url = "conf url";
 
+    }
+
+    private final Record getRecord(){
+        Record.Builder builder = recordBuilderFactory.newRecordBuilder();
+
+        builder.withInt("number", (new Random()).nextInt());
+        builder.withString("String", UUID.randomUUID().toString());
+
+        return builder.build();
     }
 
 }
