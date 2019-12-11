@@ -20,7 +20,6 @@ import com.netsuite.webservices.v2018_2.platform.core.types.SearchDateFieldOpera
 import com.netsuite.webservices.v2018_2.platform.core.types.SearchMultiSelectFieldOperator;
 import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrder;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
@@ -59,20 +58,15 @@ class UIActionServiceTest extends NetSuiteBaseTest {
     @Service
     private UIActionService uiActionService;
 
-    @BeforeEach
-    void refresh() {
-        dataStore.setEnableCustomization(false);
-    }
-
     @Test
     void testHealthCheck() {
+        log.info("Test 'health check' start ");
         assertEquals(HealthCheckStatus.Status.OK, uiActionService.validateConnection(dataStore).getStatus());
     }
 
     @Test
     void testHealthCheckFailed() {
         log.info("Test 'healthcheck failed' start ");
-
         NetSuiteDataStore dataStoreWrong = new NetSuiteDataStore();
         dataStoreWrong.setLoginType(LoginType.BASIC);
         dataStoreWrong.setRole("3");
@@ -85,20 +79,17 @@ class UIActionServiceTest extends NetSuiteBaseTest {
     }
 
     @Test
+    // @Disabled("guess schema functionality is not relevant for pipeline designer")
     void testGuessSchema() {
         log.info("Test 'guess schema' start ");
         List<String> fields = Arrays.stream(PurchaseOrder.class.getDeclaredFields()).map(field -> field.getName().toLowerCase())
                 .collect(toList());
-        NetSuiteOutputProperties outputDataSet = new NetSuiteOutputProperties();
-        NetSuiteDataSet dataSet = new NetSuiteDataSet();
-        dataSet.setDataStore(dataStore);
+        NetSuiteOutputProperties outputProperties = createOutputProperties();
+        NetSuiteDataSet dataSet = outputProperties.getDataSet();
         dataSet.setRecordType("PurchaseOrder");
-        outputDataSet.setDataSet(dataSet);
         // For custom fields need to re-create connection (might be a case for refactoring of Service)
-        dataStore.setEnableCustomization(true);
-        uiActionService.validateConnection(dataStore);
-
-        Schema schema = uiActionService.guessSchema(outputDataSet.getDataSet());
+        dataSet.setEnableCustomization(true);
+        Schema schema = uiActionService.guessSchema(outputProperties.getDataSet());
         // In case of customization count of entries in schema must be more than actual class fields.
         assertTrue(fields.size() < schema.getEntries().size());
     }
@@ -108,8 +99,8 @@ class UIActionServiceTest extends NetSuiteBaseTest {
         log.info("Test 'load record types' start ");
         List<String> expectedList = Arrays.stream(RecordTypeEnum.values()).map(RecordTypeEnum::getTypeName).sorted()
                 .collect(toList());
-        uiActionService.validateConnection(dataStore);
-        SuggestionValues values = uiActionService.loadRecordTypes(dataStore);
+        NetSuiteDataSet dataSet = createDefaultDataSet();
+        SuggestionValues values = uiActionService.loadRecordTypes(dataSet);
         List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
 
         assertIterableEquals(expectedList, actualList);
@@ -118,12 +109,11 @@ class UIActionServiceTest extends NetSuiteBaseTest {
     @Test
     void testLoadCustomRecordTypes() {
         log.info("Test 'load custom record types' start ");
-        dataStore.setEnableCustomization(true);
-        uiActionService.validateConnection(dataStore);
-        SuggestionValues values = uiActionService.loadRecordTypes(dataStore);
-
-        // For enabled customization we must have more record types. (even for passing other tests, they must be
-        // defined)
+        NetSuiteDataSet dataSet = createDefaultDataSet();
+        dataSet.setEnableCustomization(true);
+        SuggestionValues values = uiActionService.loadRecordTypes(dataSet);
+        // For enabled customization we must have more record types.
+        // Even for passing other tests, they must be defined
         assertTrue(RecordTypeEnum.values().length < values.getItems().size());
     }
 
@@ -132,13 +122,9 @@ class UIActionServiceTest extends NetSuiteBaseTest {
         log.info("Test 'load fields' start ");
         List<String> expectedList = Arrays.stream(AccountSearchBasic.class.getDeclaredFields()).map(Field::getName)
                 .filter(NetSuiteDatasetRuntime.FILTER_EXTRA_SEARCH_FIELDS).sorted().collect(toList());
-
-        NetSuiteDataSet commonDataSet = new NetSuiteDataSet();
-        commonDataSet.setDataStore(dataStore);
-        commonDataSet.setRecordType("Account");
-
-        uiActionService.validateConnection(dataStore);
-        SuggestionValues values = uiActionService.loadFields(commonDataSet);
+        NetSuiteDataSet dataSet = createDefaultDataSet();
+        dataSet.setRecordType("Account");
+        SuggestionValues values = uiActionService.loadFields(dataSet);
         List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
         assertIterableEquals(expectedList, actualList);
     }
@@ -151,13 +137,11 @@ class UIActionServiceTest extends NetSuiteBaseTest {
         expectedList.add("custrecordtemp_value_for_search");
         Collections.sort(expectedList);
 
-        dataStore.setEnableCustomization(true);
-        NetSuiteDataSet commonDataSet = new NetSuiteDataSet();
-        commonDataSet.setDataStore(dataStore);
-        commonDataSet.setRecordType("customrecordsearch_date_type");
+        NetSuiteDataSet dataSet = createDefaultDataSet();
+        dataSet.setRecordType("customrecordsearch_date_type");
+        dataSet.setEnableCustomization(true);
 
-        uiActionService.validateConnection(dataStore);
-        SuggestionValues values = uiActionService.loadFields(commonDataSet);
+        SuggestionValues values = uiActionService.loadFields(dataSet);
         List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
         assertIterableEquals(expectedList, actualList);
     }
@@ -168,12 +152,10 @@ class UIActionServiceTest extends NetSuiteBaseTest {
         List<String> expectedList = Arrays.stream(TransactionSearchBasic.class.getDeclaredFields()).map(Field::getName)
                 .filter(NetSuiteDatasetRuntime.FILTER_EXTRA_SEARCH_FIELDS).sorted().collect(toList());
 
-        NetSuiteDataSet commonDataSet = new NetSuiteDataSet();
-        commonDataSet.setDataStore(dataStore);
-        commonDataSet.setRecordType("PurchaseOrder");
+        NetSuiteDataSet dataSet = createDefaultDataSet();
+        dataSet.setRecordType("PurchaseOrder");
 
-        uiActionService.validateConnection(dataStore);
-        SuggestionValues values = uiActionService.loadFields(commonDataSet);
+        SuggestionValues values = uiActionService.loadFields(dataSet);
         List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
         assertIterableEquals(expectedList, actualList);
     }
@@ -181,8 +163,7 @@ class UIActionServiceTest extends NetSuiteBaseTest {
     @Test
     void testLoadSearchOperator() {
         log.info("Test 'load search operator' start ");
-        NetSuiteDataSet dataSet = new NetSuiteDataSet();
-        dataSet.setDataStore(dataStore);
+        NetSuiteDataSet dataSet = createDefaultDataSet();
         dataSet.setRecordType("Account");
 
         List<String> expectedList = SearchFieldOperatorTypeDesc
@@ -198,8 +179,7 @@ class UIActionServiceTest extends NetSuiteBaseTest {
     @Test
     void testLoadSearchOperatorForDateType() {
         log.info("Test 'load search operator for Date type' start ");
-        NetSuiteDataSet dataSet = new NetSuiteDataSet();
-        dataSet.setDataStore(dataStore);
+        NetSuiteDataSet dataSet = createDefaultDataSet();
         dataSet.setRecordType("PurchaseOrder");
 
         List<String> expectedList = Stream.concat(

@@ -21,7 +21,6 @@ import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
-import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.service.Messages;
 import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.components.netsuite.test.TestCollector;
@@ -60,8 +59,6 @@ public abstract class NetSuiteBaseTest {
 
     protected static String NETSUITE_ROLE_ID;
 
-    protected static NetSuiteClientService<?> clientService;
-
     protected static NetSuiteDataStore dataStore;
 
     protected static NetSuiteService service;
@@ -77,11 +74,13 @@ public abstract class NetSuiteBaseTest {
     public static void setupOnce() throws IOException {
         readPropertiesFile();
 
+        messages = COMPONENT.findService(Messages.class);
+        factory = COMPONENT.findService(RecordBuilderFactory.class);
+
         final MavenDecrypter decrypter = new MavenDecrypter();
         Server consumer = decrypter.find("netsuite.consumer");
         Server token = decrypter.find("netsuite.token");
         dataStore = new NetSuiteDataStore();
-        dataStore.setEnableCustomization(false);
         dataStore.setApiVersion(ApiVersion.V2018_2);
         dataStore.setAccount(NETSUITE_ACCOUNT);
         dataStore.setLoginType(LoginType.TBA);
@@ -89,10 +88,7 @@ public abstract class NetSuiteBaseTest {
         dataStore.setConsumerSecret(consumer.getPassword());
         dataStore.setTokenId(token.getUsername());
         dataStore.setTokenSecret(token.getPassword());
-        service = COMPONENT.findService(NetSuiteService.class);
-        clientService = service.getClientService(dataStore);
-        messages = COMPONENT.findService(Messages.class);
-        factory = COMPONENT.findService(RecordBuilderFactory.class);
+        service = new NetSuiteService(factory, messages);
     }
 
     private static void readPropertiesFile() throws IOException {
@@ -136,22 +132,26 @@ public abstract class NetSuiteBaseTest {
     }
 
     private <T> String getQueryProperties(T properties) {
-        return configurationByExample().forInstance(properties).configured().toQueryString() + "&configuration.$maxBatchSize=100";
+        return configurationByExample().forInstance(properties).configured().toQueryString() + "&configuration.$maxBatchSize=200";
     }
 
     protected NetSuiteOutputProperties createOutputProperties() {
         NetSuiteOutputProperties outputProperties = new NetSuiteOutputProperties();
-        NetSuiteDataSet dataSet = new NetSuiteDataSet();
-        dataSet.setDataStore(dataStore);
+        NetSuiteDataSet dataSet = createDefaultDataSet();
         outputProperties.setDataSet(dataSet);
         return outputProperties;
     }
 
     protected NetSuiteInputProperties createInputProperties() {
         NetSuiteInputProperties inputProperties = new NetSuiteInputProperties();
-        NetSuiteDataSet dataSet = new NetSuiteDataSet();
-        dataSet.setDataStore(dataStore);
+        NetSuiteDataSet dataSet = createDefaultDataSet();
         inputProperties.setDataSet(dataSet);
         return inputProperties;
+    }
+
+    protected NetSuiteDataSet createDefaultDataSet() {
+        NetSuiteDataSet dataSet = new NetSuiteDataSet();
+        dataSet.setDataStore(dataStore);
+        return dataSet;
     }
 }

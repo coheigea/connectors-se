@@ -35,6 +35,9 @@ public class NetSuiteInputProperties implements Serializable {
     @Documentation("Properties that are required for search")
     private List<SearchConditionConfiguration> searchCondition;
 
+    /**
+     * @param bodyFieldsOnly In terms of documentation false means get all fields, true no item lists returned
+     */
     @Option
     @Documentation("Shows or hides Item List result. Default true - hides, uncheck it to show")
     private boolean bodyFieldsOnly = true;

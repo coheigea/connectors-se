@@ -12,6 +12,7 @@
  */
 package org.talend.components.netsuite.processor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties.DataAction;
@@ -32,6 +33,7 @@ import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -47,6 +49,7 @@ import java.util.stream.IntStream;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+@Slf4j
 @Version(1)
 @Icon(value = Icon.IconType.NETSUITE)
 @Processor(name = "Output")
@@ -55,9 +58,9 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     private final NetSuiteOutputProperties configuration;
 
-    private final NetSuiteService service;
-
     private NetSuiteClientService<?> clientService;
+
+    private RecordBuilderFactory recordBuilderFactory;
 
     private Messages i18n;
 
@@ -70,15 +73,17 @@ public class NetSuiteOutputProcessor implements Serializable {
     private Schema schema;
 
     public NetSuiteOutputProcessor(@Option("configuration") final NetSuiteOutputProperties configuration,
-            final NetSuiteService service, Messages i18n) {
+            RecordBuilderFactory recordBuilderFactory, Messages i18n) {
+        this.recordBuilderFactory = recordBuilderFactory;
         this.configuration = configuration;
-        this.service = service;
         this.i18n = i18n;
     }
 
     @PostConstruct
     public void init() {
-        clientService = service.getClientService(configuration.getDataSet().getDataStore());
+        NetSuiteService service = new NetSuiteService(recordBuilderFactory, i18n);
+        log.info("Output Processor Data Set: " + configuration.getDataSet());
+        clientService = service.getClientService(configuration.getDataSet());
         schema = service.getSchema(configuration.getDataSet(), null);
         referenceDataActionFunction();
         instantiateTransducer();
@@ -192,5 +197,4 @@ public class NetSuiteOutputProcessor implements Serializable {
         IntStream.range(0, recordsToBeProcessed.size()).boxed()
                 .collect(toMap(recordsToBeProcessed::get, responseList::get, (k1, k2) -> k2, supplier));
     }
-
 }

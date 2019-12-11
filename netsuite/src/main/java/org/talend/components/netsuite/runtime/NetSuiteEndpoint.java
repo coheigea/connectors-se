@@ -12,10 +12,14 @@
  */
 package org.talend.components.netsuite.runtime;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
-import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientFactory;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteCredentials;
@@ -24,16 +28,9 @@ import org.talend.components.netsuite.runtime.client.NetSuiteVersion;
 import org.talend.components.netsuite.runtime.client.NsTokenPassport;
 import org.talend.components.netsuite.service.Messages;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
-
 /**
  * Represents NetSuite Web Service endpoint.
  */
-
 public class NetSuiteEndpoint {
 
     public static final String CONNECTION = "NetSuite_Connection";
@@ -119,7 +116,7 @@ public class NetSuiteEndpoint {
         }
 
         ConnectionConfig connectionConfig = new ConnectionConfig(properties.getApiVersion().getEndpoint(), apiVersion.getMajor(),
-                credentials, tokenPassport, properties.isEnableCustomization());
+                credentials, tokenPassport);
         return connectionConfig;
     }
 
@@ -155,17 +152,12 @@ public class NetSuiteEndpoint {
      * @throws NetSuiteException if an error occurs during connecting
      */
     private NetSuiteClientService<?> connect(ConnectionConfig connectionConfig) throws NetSuiteException {
-
         NetSuiteClientService<?> clientService = clientFactory.createClient();
         clientService.setI18n(i18n);
         clientService.setEndpointUrl(connectionConfig.getEndpointUrl());
         clientService.setCredentials(connectionConfig.getCredentials());
         clientService.setTokenPassport(connectionConfig.getTokenPassport());
-        MetaDataSource metaDataSource = clientService.getMetaDataSource();
-        metaDataSource.setCustomizationEnabled(connectionConfig.isCustomizationEnabled());
-
         clientService.login();
-
         return clientService;
     }
 
@@ -186,7 +178,5 @@ public class NetSuiteEndpoint {
         private NetSuiteCredentials credentials;
 
         private NsTokenPassport tokenPassport;
-
-        private boolean customizationEnabled;
     }
 }

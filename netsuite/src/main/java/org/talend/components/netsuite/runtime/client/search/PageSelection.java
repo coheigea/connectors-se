@@ -19,7 +19,16 @@ import java.io.Serializable;
 @Value
 public class PageSelection implements Serializable {
 
-    int pageOffset;
+    private String searchId;
 
-    int pageCount;
+    private int firstPage;
+
+    /**
+     * equals 0 for empty result
+     */
+    private int pageCount;
+
+    public static PageSelection createEmpty(String searchId) {
+        return new PageSelection(searchId, -1, 0);
+    }
 }

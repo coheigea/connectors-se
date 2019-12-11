@@ -23,7 +23,6 @@ import org.talend.components.netsuite.runtime.client.search.SearchCondition;
 import org.talend.components.netsuite.runtime.client.search.SearchQuery;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -33,7 +32,7 @@ import java.util.Optional;
 import static java.util.stream.Collectors.toList;
 
 @Documentation("TODO fill the documentation for this source")
-public class NetSuiteInputSearcher implements Serializable {
+public class NetSuiteInputSearcher {
 
     private final NetSuiteInputProperties configuration;
 
@@ -45,6 +44,7 @@ public class NetSuiteInputSearcher implements Serializable {
     public NetSuiteInputSearcher(final NetSuiteInputProperties configuration, final NetSuiteClientService<?> clientService) {
         this.configuration = configuration;
         this.clientService = clientService;
+        clientService.setBodyFieldsOnly(configuration.isBodyFieldsOnly());
     }
 
     /**

@@ -12,6 +12,8 @@
  */
 package org.talend.components.netsuite.processor;
 
+import com.netsuite.webservices.v2018_2.platform.core.types.SearchStringFieldOperator;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
@@ -20,6 +22,8 @@ import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties.DataAction;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
+import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
+import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.components.netsuite.source.NsObjectInputTransducer;
 import org.talend.components.netsuite.test.TestCollector;
 import org.talend.components.netsuite.test.TestEmitter;
@@ -35,6 +39,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Slf4j
 @WithComponents("org.talend.components.netsuite")
 public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
 
@@ -46,61 +51,75 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
 
     @Test
     void testCreateUpdateDeleteAccountRecordType() {
+        log.info("Test 'testCreateUpdateDeleteAccountRecordType' start ");
+        String testIdPrefix = "CreateUpdateDeleteAccountRecordTypeTest_";
         NetSuiteOutputProperties outputProperties = createOutputProperties();
         NetSuiteDataSet dataSet = outputProperties.getDataSet();
         dataSet.setRecordType("Account");
+
         // add record
         outputProperties.setAction(DataAction.ADD);
         List<String> schemaFields = Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId",
                 "ExternalId");
+        NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
+        NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                service.getSchema(dataSet, schemaFields), "Account", "2018.2");
-        Record record = inputTransducer.read(() -> SampleData.prepareAccountRecord(null));
+                netSuiteService.getSchema(dataSet, schemaFields), "Account", "2018.2");
+        Record record = inputTransducer.read(() -> SampleData.prepareAccountRecord(null, testIdPrefix));
         buildAndRunCollectorJob(outputProperties, Collections.singletonList(record));
 
         // read the record
-        NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
-        inputDataSet.setDataSet(dataSet);
-        final Record insertedRecord = buildAndRunEmitterJob(inputDataSet).stream()
+        NetSuiteInputProperties inputProperties = new NetSuiteInputProperties();
+        inputProperties.setDataSet(dataSet);
+        List<SearchConditionConfiguration> searchAll = Collections.singletonList(new SearchConditionConfiguration("description",
+                "String." + SearchStringFieldOperator.STARTS_WITH.value(), testIdPrefix, ""));
+        inputProperties.setSearchCondition(searchAll);
+        final List<Record> insertedRecords = buildAndRunEmitterJob(inputProperties);
+        final Record insertedRecord = insertedRecords.stream()
                 .filter(r -> r.getString("AcctName").equals(record.getString("AcctName"))).findFirst()
                 .orElseThrow(IllegalStateException::new);
         TestCollector.reset();
 
         // update the record
-        Record updateRecord = inputTransducer.read(() -> SampleData.prepareAccountRecord(insertedRecord));
+        Record updateRecord = inputTransducer.read(() -> SampleData.prepareAccountRecord(insertedRecord, null));
         outputProperties.setAction(DataAction.UPDATE);
         buildAndRunCollectorJob(outputProperties, Collections.singletonList(updateRecord));
 
         // reread the updated record
-        inputDataSet.setSearchCondition(createSearchConditionConfiguration(updateRecord.getString("InternalId")));
-        Record resultUpdatedRecord = buildAndRunEmitterJob(inputDataSet).get(0);
+        inputProperties.setSearchCondition(createSearchConditionConfiguration(updateRecord.getString("InternalId")));
+        Record resultUpdatedRecord = buildAndRunEmitterJob(inputProperties).get(0);
         assertEquals(updateRecord.getString("Description"), resultUpdatedRecord.getString("Description"));
 
-        // delete the record
+        // delete all records
         outputProperties.setAction(DataAction.DELETE);
-        buildAndRunCollectorJob(outputProperties, Collections.singletonList(updateRecord));
-        assertTrue(buildAndRunEmitterJob(inputDataSet).isEmpty());
+        buildAndRunCollectorJob(outputProperties, insertedRecords);
+        inputProperties.setSearchCondition(searchAll);
+        assertTrue(buildAndRunEmitterJob(inputProperties).isEmpty());
     }
 
     @Test
     void testNativeUpsert() throws IOException {
+        log.info("Test 'native upsert' start ");
         createUpsertCustomRecord(true);
     }
 
     @Test
     void testCustomUpsert() throws IOException {
+        log.info("Test 'custom upsert' start ");
         createUpsertCustomRecord(false);
     }
 
     private void createUpsertCustomRecord(boolean isNativeUpsert) throws IOException {
         NetSuiteOutputProperties outputProperties = createOutputProperties();
         NetSuiteDataSet dataSet = outputProperties.getDataSet();
-        clientService.getMetaDataSource().setCustomizationEnabled(true);
+        dataSet.setEnableCustomization(true);
         dataSet.setRecordType("customrecordqacomp_custom_recordtype");
         List<String> schemaFields = Arrays.asList("Name", "Custrecord79", "Custrecord80", "InternalId", "ExternalId");
         outputProperties.setUseNativeUpsert(isNativeUpsert);
+        NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
+        NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                service.getSchema(dataSet, schemaFields), "customrecordqacomp_custom_recordtype", "2018.2");
+                netSuiteService.getSchema(dataSet, schemaFields), "customrecordqacomp_custom_recordtype", "2018.2");
         NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
         inputDataSet.setDataSet(dataSet);
 
@@ -142,16 +161,19 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
 
     @Test
     void testCreateVendorBillWithTransactionField() {
+        log.info("Test 'testCreateVendorBillWithTransactionField' start ");
         NetSuiteOutputProperties outputProperties = createOutputProperties();
         NetSuiteDataSet dataSet = outputProperties.getDataSet();
         outputProperties.setAction(DataAction.ADD);
-        clientService.getMetaDataSource().setCustomizationEnabled(true);
+        dataSet.setEnableCustomization(true);
         dataSet.setRecordType("PurchaseOrder");
         List<String> schemaFields = Arrays.asList("Custbody_clarivates_custom", "Custbody111", "Subsidiary", "ItemList",
                 "Message", "CustomForm", "Entity", "ExchangeRate", "SupervisorApproval", "InternalId", "ExternalId");
 
+        NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
+        NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                service.getSchema(dataSet, schemaFields), "PurchaseOrder", "2018.2");
+                netSuiteService.getSchema(dataSet, schemaFields), "PurchaseOrder", "2018.2");
 
         Record record = inputTransducer.read(SampleData::preparePurchaseOrder);
 
@@ -163,9 +185,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         String messageStringPrepared = record.getString("Message");
         inputDataSet.setSearchCondition(
                 Collections.singletonList(new SearchConditionConfiguration("Message", "String.is", messageStringPrepared, "")));
-        Record resultRecord = buildAndRunEmitterJob(inputDataSet).stream()
-                // .filter(r -> messageStringPrepared.equals(r.getString("Message")))
-                .findFirst().orElseThrow(IllegalStateException::new);
+        Record resultRecord = buildAndRunEmitterJob(inputDataSet).stream().findFirst().orElseThrow(IllegalStateException::new);
         assertEquals(record.getString("Custbody111"), resultRecord.getString("Custbody111"));
 
         outputProperties.setAction(DataAction.DELETE);

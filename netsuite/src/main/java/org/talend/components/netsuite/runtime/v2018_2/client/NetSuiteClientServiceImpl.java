@@ -54,11 +54,11 @@ import com.netsuite.webservices.v2018_2.platform.messages.WriteResponseList;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.cxf.feature.LoggingFeature;
 import org.apache.cxf.headers.Header;
-import org.apache.cxf.jaxb.JAXBDataBinding;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.CustomMetaDataSource;
 import org.talend.components.netsuite.runtime.client.DefaultCustomMetaDataSource;
 import org.talend.components.netsuite.runtime.client.DefaultMetaDataSource;
+import org.talend.components.netsuite.runtime.client.JAXBDataBindingCache;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteCredentials;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -281,14 +281,13 @@ public class NetSuiteClientServiceImpl extends NetSuiteClientService<NetSuitePor
                 features.add(new LoggingFeature());
             }
             NetSuitePortType port = service.getNetSuitePort(features.toArray(new WebServiceFeature[features.size()]));
-
             BindingProvider provider = (BindingProvider) port;
             Map<String, Object> requestContext = provider.getRequestContext();
             requestContext.put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, defaultEndpointUrl);
             if (tokenPassport != null) {
                 nativeTokenPassport = createNativeTokenPassport();
                 Header tokenHeader = new Header(new QName(getPlatformMessageNamespaceUri(), "tokenPassport"), nativeTokenPassport,
-                        new JAXBDataBinding(nativeTokenPassport.getClass()));
+                        JAXBDataBindingCache.getInstance().getBinding(nativeTokenPassport.getClass()));
                 Optional.ofNullable((List<Header>) requestContext.get(Header.HEADER_LIST)).orElseGet(() -> {
                     List<Header> list = new ArrayList<>();
                     requestContext.put(Header.HEADER_LIST, list);

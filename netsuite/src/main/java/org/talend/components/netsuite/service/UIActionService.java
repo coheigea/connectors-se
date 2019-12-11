@@ -22,6 +22,9 @@ import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
+import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
+
+import javax.annotation.PostConstruct;
 
 @Service
 public class UIActionService {
@@ -37,10 +40,17 @@ public class UIActionService {
     public static final String LOAD_OPERATORS = "loadOperators";
 
     @Service
-    private NetSuiteService service;
+    private RecordBuilderFactory recordBuilderFactory;
 
     @Service
     private Messages i18n;
+
+    private NetSuiteService service;
+
+    @PostConstruct
+    public void init() {
+        service = new NetSuiteService(recordBuilderFactory, i18n);
+    }
 
     @HealthCheck(HEALTH_CHECK)
     public HealthCheckStatus validateConnection(@Option final NetSuiteDataStore dataStore) {
@@ -52,14 +62,14 @@ public class UIActionService {
         }
     }
 
-    // @DiscoverSchema(GUESS_SCHEMA)
+    // is not relevant for pipeline designer
     public Schema guessSchema(@Option final NetSuiteDataSet dataSet) {
         return service.getSchema(dataSet, null);
     }
 
     @Suggestions(LOAD_RECORD_TYPES)
-    public SuggestionValues loadRecordTypes(@Option final NetSuiteDataStore dataStore) {
-        return new SuggestionValues(true, service.getRecordTypes(dataStore));
+    public SuggestionValues loadRecordTypes(@Option final NetSuiteDataSet dataSet) {
+        return new SuggestionValues(true, service.getRecordTypes(dataSet));
     }
 
     @Suggestions(LOAD_FIELDS)

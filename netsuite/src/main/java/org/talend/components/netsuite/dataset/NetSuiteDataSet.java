@@ -20,6 +20,7 @@ import org.talend.components.netsuite.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
+import org.talend.sdk.component.api.configuration.ui.DefaultValue;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -31,13 +32,19 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "recordType" }) }),
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataStore" }) }) })
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataStore" }),
+                @GridLayout.Row({ "enableCustomization" }) }) })
 @Documentation("Common properties that are present in Input & Output components")
 public class NetSuiteDataSet implements Serializable {
 
     @Option
     @Documentation("Connection")
     private NetSuiteDataStore dataStore;
+
+    @Option
+    @DefaultValue("true")
+    @Documentation("Enables or disables operations with custom records, fields, entities, forms.")
+    private boolean enableCustomization;
 
     @Option
     @Suggestable(value = UIActionService.LOAD_RECORD_TYPES, parameters = { "dataStore" })

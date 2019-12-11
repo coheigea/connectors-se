@@ -20,28 +20,28 @@ import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.v2018_2.client.NetSuiteClientFactoryImpl;
 import org.talend.sdk.component.api.record.Schema;
-import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
-
-@Service
 public class NetSuiteService {
 
     private NetSuiteDatasetRuntime dataSetRuntime;
 
     private NetSuiteClientService<?> clientService;
 
-    @Service
     private RecordBuilderFactory recordBuilderFactory;
 
-    @Service
     private Messages i18n;
+
+    public NetSuiteService(RecordBuilderFactory recordBuilderFactory, Messages i18n) {
+        this.recordBuilderFactory = recordBuilderFactory;
+        this.i18n = i18n;
+    }
 
     public synchronized void connect(NetSuiteDataStore dataStore) {
         NetSuiteEndpoint endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(), i18n, dataStore);
@@ -49,46 +49,43 @@ public class NetSuiteService {
         dataSetRuntime = new NetSuiteDatasetRuntime(clientService.getMetaDataSource(), recordBuilderFactory);
     }
 
-    List<SuggestionValues.Item> getRecordTypes(NetSuiteDataStore dataStore) {
-        if (dataSetRuntime == null) {
-            connect(dataStore);
-        }
+    List<SuggestionValues.Item> getRecordTypes(NetSuiteDataSet dataSet) {
+        init(dataSet);
         return dataSetRuntime.getRecordTypes().stream()
                 .map(record -> new SuggestionValues.Item(record.getName(), record.getDisplayName()))
-                .sorted(Comparator.comparing(i -> i.getLabel().toLowerCase())).collect(toList());
+                .sorted(Comparator.comparing(i -> i.getLabel().toLowerCase())).collect(Collectors.toList());
     }
 
     List<SuggestionValues.Item> getSearchTypes(NetSuiteDataSet dataSet) {
         if (StringUtils.isEmpty(dataSet.getRecordType())) {
             return Collections.emptyList();
         }
-        if (dataSetRuntime == null) {
-            connect(dataSet.getDataStore());
-        }
+        init(dataSet);
         return dataSetRuntime.getSearchInfo(dataSet.getRecordType()).getFields().stream()
-                .map(searchType -> new SuggestionValues.Item(searchType, searchType)).collect(toList());
+                .map(searchType -> new SuggestionValues.Item(searchType, searchType)).collect(Collectors.toList());
     }
 
     List<SuggestionValues.Item> getSearchFieldOperators(NetSuiteDataSet dataSet, String field) {
-        if (dataSetRuntime == null) {
-            connect(dataSet.getDataStore());
-        }
+        init(dataSet);
         return dataSetRuntime.getSearchFieldOperators(dataSet.getRecordType(), field).stream()
-                .map(searchField -> new SuggestionValues.Item(searchField, searchField)).collect(toList());
+                .map(searchField -> new SuggestionValues.Item(searchField, searchField)).collect(Collectors.toList());
     }
 
     public Schema getSchema(NetSuiteDataSet dataSet, List<String> stringSchema) {
-        if (dataSetRuntime == null) {
-            connect(dataSet.getDataStore());
-        }
+        init(dataSet);
         return dataSetRuntime.getSchema(dataSet.getRecordType(), stringSchema);
     }
 
-    public NetSuiteClientService<?> getClientService(NetSuiteDataStore dataStore) {
-        if (clientService == null) {
-            connect(dataStore);
-        }
+    public NetSuiteClientService<?> getClientService(NetSuiteDataSet dataSet) {
+        init(dataSet);
         return clientService;
+    }
+
+    private void init(NetSuiteDataSet dataSet) {
+        if (clientService == null) {
+            connect(dataSet.getDataStore());
+        }
+        clientService.getMetaDataSource().setCustomizationEnabled(dataSet.isEnableCustomization());
     }
 
 }

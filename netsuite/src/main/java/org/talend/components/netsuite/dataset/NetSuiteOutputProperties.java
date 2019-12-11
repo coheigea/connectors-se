@@ -21,15 +21,12 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayouts;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Data
 @GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "action" }) }), @GridLayout(names = {
         GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "useNativeUpsert" }) }) })
 @Documentation("Properties for Output component")
 public class NetSuiteOutputProperties implements Serializable {
-
-    private List<String> schemaIn;
 
     @Option
     @Documentation("Common dataset properties - datastore + module")
@@ -48,7 +45,6 @@ public class NetSuiteOutputProperties implements Serializable {
 
     /**
      * Basic operation with NetSuite records.
-     *
      */
     public enum DataAction {
         ADD,

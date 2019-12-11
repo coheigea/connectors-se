@@ -51,7 +51,6 @@ public class NsObjectInputTransducer extends NsObjectTransducer {
     /**
      * Translate NetSuite data model object to {@code IndexedRecord}.
      *
-     * @param data NetSuite data object
      * @return indexed record
      */
     public Record read(Supplier<Object> supplier) {

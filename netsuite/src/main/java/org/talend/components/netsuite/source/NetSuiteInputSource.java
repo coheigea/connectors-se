@@ -33,8 +33,6 @@ public class NetSuiteInputSource implements Serializable {
 
     private final NetSuiteInputProperties configuration;
 
-    private final NetSuiteService service;
-
     private final RecordBuilderFactory recordBuilderFactory;
 
     private final Messages i18n;
@@ -44,10 +42,8 @@ public class NetSuiteInputSource implements Serializable {
     private NsObjectInputTransducer transducer;
 
     public NetSuiteInputSource(@Option("configuration") final NetSuiteInputProperties configuration,
-            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory, final Messages i18n,
-            SearchResultSet<?> rs) {
+            final RecordBuilderFactory recordBuilderFactory, final Messages i18n, SearchResultSet<?> rs) {
         this.configuration = configuration;
-        this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
         this.i18n = i18n;
         this.rs = rs;
@@ -55,7 +51,8 @@ public class NetSuiteInputSource implements Serializable {
 
     @PostConstruct
     public void init() {
-        NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet().getDataStore());
+        NetSuiteService service = new NetSuiteService(recordBuilderFactory, i18n);
+        NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet());
         Schema runtimeSchema = service.getSchema(configuration.getDataSet(), null);
         RecordTypeInfo recordTypeInfo = rs.getRecordTypeDesc();
         transducer = new NsObjectInputTransducer(clientService, i18n, recordBuilderFactory, runtimeSchema,

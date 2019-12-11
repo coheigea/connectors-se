@@ -45,38 +45,43 @@ public class NetSuiteInputMapper implements Serializable {
 
     private final NetSuiteInputProperties configuration;
 
-    private final NetSuiteService service;
+    private transient NetSuiteService service;
 
     private final RecordBuilderFactory recordBuilderFactory;
 
     private final Messages i18n;
 
     @Setter
-    private NsSearchResult<?> rs;
-
-    @Setter
     private PageSelection pageSelection;
 
     public NetSuiteInputMapper(@Option("configuration") final NetSuiteInputProperties configuration,
-            final NetSuiteService service, final RecordBuilderFactory recordBuilderFactory, final Messages i18n) {
+            final RecordBuilderFactory recordBuilderFactory, final Messages i18n) {
         this.configuration = configuration;
-        this.service = service;
         this.recordBuilderFactory = recordBuilderFactory;
         this.i18n = i18n;
     }
 
     @PostConstruct
     public void init() {
-        NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet().getDataStore());
-        NetSuiteInputSearcher searcher = new NetSuiteInputSearcher(configuration, clientService);
-        rs = searcher.search();
-        // this value is used in case of no splitting
-        pageSelection = new PageSelection(1, rs.getTotalPages());
+        // rs can be deserialized at worker
+        if (pageSelection == null) {
+            service = new NetSuiteService(recordBuilderFactory, i18n);
+            NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet());
+            NetSuiteInputSearcher searcher = new NetSuiteInputSearcher(configuration, clientService);
+            NsSearchResult<?> rs = searcher.search();
+            // this value is used in case of no splitting
+            List<?> recordList = rs.getRecordList();
+            if (recordList != null && !recordList.isEmpty()) {
+                pageSelection = new PageSelection(rs.getSearchId(), 1, rs.getTotalPages());
+            } else {
+                pageSelection = PageSelection.createEmpty(rs.getSearchId());
+            }
+        }
     }
 
     @Assessor
     public long estimateSize() {
-        return rs.getTotalPages();
+        return pageSelection.getPageCount();
     }
 
     @Split
@@ -84,18 +89,23 @@ public class NetSuiteInputMapper implements Serializable {
         if (bundles == 0)
             return Collections.singletonList(this);
 
-        int threads = (int) (rs.getTotalPages() / bundles);
+        int threads = (int) (pageSelection.getPageCount() / bundles);
+        if (threads == 1)
+            return Collections.singletonList(this);
+
         List<NetSuiteInputMapper> res = new LinkedList<>();
         for (int i = 0; i < threads; i++) {
-            NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, service, recordBuilderFactory, i18n);
-            mapper.setRs(rs);
-            mapper.setPageSelection(new PageSelection((int) (bundles * i) + 1, (int) bundles));
+            NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, recordBuilderFactory, i18n);
+            // mapper.setRs(rs);
+            mapper.setPageSelection(new PageSelection(pageSelection.getSearchId(),
+                    (int) (bundles * i) + pageSelection.getFirstPage(), (int) bundles));
             res.add(mapper);
         }
-        if (threads * bundles < rs.getTotalPages()) {
-            NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, service, recordBuilderFactory, i18n);
-            mapper.setRs(rs);
-            mapper.setPageSelection(new PageSelection((int) bundles * threads + 1, rs.getTotalPages() - (int) bundles * threads));
+        if (threads * bundles < pageSelection.getPageCount()) {
+            NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, recordBuilderFactory, i18n);
+            mapper.setPageSelection(
+                    new PageSelection(pageSelection.getSearchId(), (int) bundles * threads + pageSelection.getFirstPage(),
+                            pageSelection.getPageCount() - (int) bundles * threads));
             res.add(mapper);
         }
         return res;
@@ -103,9 +113,13 @@ public class NetSuiteInputMapper implements Serializable {
 
     @Emitter
     public NetSuiteInputSource createWorker() {
-        NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet().getDataStore());
+        // it can be run on a worker after deserialization
+        if (service == null) {
+            service = new NetSuiteService(recordBuilderFactory, i18n);
+        }
+        NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet());
         String recordTypeName = configuration.getDataSet().getRecordType();
-        SearchResultSet<?> srs = new SearchResultSet<>(clientService, recordTypeName, rs, pageSelection);
-        return new NetSuiteInputSource(configuration, service, recordBuilderFactory, i18n, srs);
+        SearchResultSet<?> srs = new SearchResultSet<>(clientService, recordTypeName, pageSelection);
+        return new NetSuiteInputSource(configuration, recordBuilderFactory, i18n, srs);
     }
 }

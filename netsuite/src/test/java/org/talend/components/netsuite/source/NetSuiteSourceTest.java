@@ -25,6 +25,8 @@ import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
+import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
+import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.components.netsuite.test.TestCollector;
 import org.talend.components.netsuite.utils.SampleData;
 import org.talend.sdk.component.api.record.Record;
@@ -38,6 +40,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -60,9 +64,7 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         dataSet.setRecordType("Account");
         inputProperties.setSearchCondition(
                 Collections.singletonList(new SearchConditionConfiguration("Type", "List.anyOf", "Bank", "")));
-
         List<Record> records = buildAndRunEmitterJob(inputProperties);
-
         Assertions.assertNotNull(records);
         Assertions.assertEquals(AccountType.BANK.value(), records.get(0).getString("AcctType"));
     }
@@ -70,13 +72,12 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
     @Test
     void testSearchCustomRecords() {
         log.info("Test 'search custom records' start ");
-        clientService.getMetaDataSource().setCustomizationEnabled(true);
         NetSuiteInputProperties inputProperties = createInputProperties();
         NetSuiteDataSet dataSet = inputProperties.getDataSet();
+        dataSet.setEnableCustomization(true);
         dataSet.setRecordType("customrecord398");
         inputProperties.setSearchCondition(
                 Collections.singletonList(new SearchConditionConfiguration("name", "String.doesNotContain", "TUP", "")));
-
         List<Record> records = buildAndRunEmitterJob(inputProperties);
         Assertions.assertTrue(records.size() > 1);
         records.stream().map(record -> record.get(String.class, "Name")).forEach(name -> {
@@ -86,54 +87,52 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
     }
 
     @Test
-    void testSearchSublistItems() {
-        log.info("Test 'search sublist items' start ");
+    void testSearchBodyFieldsNotOnly() {
+        log.info("Test 'search not only body fields' start ");
         Assertions.assertNotNull(searchSublistItems(false));
     }
 
     @Test
-    void testSearchSublistItemsEmpty() {
-        log.info("Test 'search sublist items empty' start ");
+    void testSearchBodyFieldsOnly() {
+        log.info("Test 'search only body fields' start ");
         Assertions.assertNull(searchSublistItems(true));
     }
 
-    /**
-     * @param bodyFieldsOnly In terms of documentation false means get all fields, true no item lists returned
-     */
     private String searchSublistItems(final boolean bodyFieldsOnly) {
-        dataStore.setEnableCustomization(true);
-        service.getClientService(dataStore).setBodyFieldsOnly(bodyFieldsOnly);
         NetSuiteInputProperties inputProperties = createInputProperties();
         NetSuiteDataSet dataSet = inputProperties.getDataSet();
         dataSet.setRecordType("purchaseOrder");
+        dataSet.setEnableCustomization(true);
+        inputProperties.setBodyFieldsOnly(bodyFieldsOnly);
         inputProperties.setSearchCondition(
                 Collections.singletonList(new SearchConditionConfiguration("internalId", "List.anyOf", "9", "")));
         List<Record> records = buildAndRunEmitterJob(inputProperties);
         Assertions.assertEquals(1, records.size());
-
         return records.get(0).get(String.class, "ItemList");
     }
 
     @Test
     void testSearchCustomRecordWithCustomFields() {
         log.info("Test 'search custom record with custom fields' start ");
-        clientService.getMetaDataSource().setCustomizationEnabled(true);
         NetSuiteInputProperties inputProperties = createInputProperties();
         NetSuiteDataSet dataSet = inputProperties.getDataSet();
         dataSet.setRecordType("customrecordsearch_date_type");
+        dataSet.setEnableCustomization(true);
         inputProperties.setSearchCondition(Collections.singletonList(
                 new SearchConditionConfiguration("custrecordtemp_value_for_search", "Long.between", "100", "200")));
-
         List<Record> records = buildAndRunEmitterJob(inputProperties);
         Assertions.assertEquals(1, records.size());
         Assertions.assertEquals("FirstRecord", records.get(0).get(String.class, "Name"));
     }
 
     @Test
+    // @Disabled
     @DisplayName("Partition input data")
     void partitionInputDataTest() {
+        log.info("Test 'partition input data' start ");
         String testIdPrefix = "PartitionInputDataTest_";
-        int n = 10;
+        int concurrency = 5;
+        int numberOfRecords = 500;
         NetSuiteInputProperties inputProperties = createInputProperties();
         NetSuiteDataSet dataSet = inputProperties.getDataSet();
         NetSuiteOutputProperties outputProperties = createOutputProperties();
@@ -141,40 +140,49 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         dataSet.setRecordType("Account");
 
         // add records
+        log.info("Test 'partition input data' add records start ");
         outputProperties.setAction(NetSuiteOutputProperties.DataAction.ADD);
         List<String> schemaFields = Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId",
                 "ExternalId");
+        NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
+        NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                service.getSchema(dataSet, schemaFields), "Account", "2018.2");
+                netSuiteService.getSchema(dataSet, schemaFields), "Account", "2018.2");
         List<Record> newRecords = new LinkedList<>();
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < numberOfRecords; i++) {
             int num = i;
             newRecords.add(inputTransducer.read(() -> {
-                Account res = SampleData.prepareAccountRecord(null);
+                Account res = SampleData.prepareAccountRecord(null, testIdPrefix + num);
                 res.setAcctName(res.getAcctName() + num);
-                res.setDescription(testIdPrefix + num);
                 return res;
             }));
         }
         buildAndRunCollectorJob(outputProperties, newRecords);
 
         // select in parallel
+        log.info("Test 'partition input data' selecting start ");
         componentsHandler.resetState();
         inputProperties.setSearchCondition(Collections.singletonList(new SearchConditionConfiguration("description",
                 "String." + SearchStringFieldOperator.STARTS_WITH.value(), testIdPrefix, "")));
         dataSet.setRecordType("Account");
         Mapper mapper = componentsHandler.asManager()
                 .findMapper("NetSuite", "Input", 1, SimpleFactory.configurationByExample(inputProperties)).get();
-        final List<Record> insertedRecords = componentsHandler.collect(Record.class, mapper, Integer.MAX_VALUE, 3)
+        log.debug("Job execution timeout talend.component.junit.timeout=" + Integer.getInteger("talend.component.junit.timeout"));
+        long startTime = System.nanoTime();
+        final List<Record> insertedRecords = componentsHandler.collect(Record.class, mapper, Integer.MAX_VALUE, concurrency)
                 .collect(Collectors.toList());
+        log.info("Estimated time, ms: " + TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startTime));
         Assertions.assertNotNull(insertedRecords);
+        Set<String> idSet = insertedRecords.stream().map(r -> r.getString("InternalId")).collect(Collectors.toSet());
         try {
-            Assertions.assertEquals(n, insertedRecords.size());
+            Assertions.assertEquals(numberOfRecords, idSet.size());
         } finally {
             // clean records
+            log.info("Test 'partition input data' clean records start ");
             outputProperties.setAction(NetSuiteOutputProperties.DataAction.DELETE);
             buildAndRunCollectorJob(outputProperties, insertedRecords);
         }
+        log.info("Test 'partition input data' check cleaned start ");
         Assertions.assertTrue(buildAndRunEmitterJob(inputProperties).isEmpty());
     }
 }

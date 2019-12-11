@@ -30,7 +30,7 @@ import java.util.Collections;
 
 public class SampleData {
 
-    public static Account prepareAccountRecord(Record record) {
+    public static Account prepareAccountRecord(Record record, String descriptionPrefix) {
         Account account = new Account();
         RecordRefList subsidiaries = new RecordRefList();
         RecordRef subsidiaryRef = new RecordRef();
@@ -42,10 +42,10 @@ public class SampleData {
         if (record == null) {
             String id = Long.toString(System.currentTimeMillis());
             account.setAcctName("Test account" + id);
-            account.setDescription("Test description " + id);
+            account.setDescription(descriptionPrefix);
         } else {
             account.setAcctName(record.getString("AcctName"));
-            account.setDescription(record.getString("Description") + "- Updated");
+            account.setDescription(record.getString("Description") + " - Updated");
             account.setInternalId(record.getString("InternalId"));
             account.setExternalId(record.getString("ExternalId"));
         }
@@ -76,8 +76,8 @@ public class SampleData {
     }
 
     public static PurchaseOrder preparePurchaseOrder() {
-        // Bad practice to hard code internalIds, we had failed tests after truncating environment. Need to consider
-        // better way of setting up values.
+        // Bad practice to hard code internalIds, we had failed tests after truncating environment.
+        // Need to consider better way of setting up values.
         String customFormId = "98";
         String vendorId = "5322";
         String employeeId = "5";

@@ -38,7 +38,7 @@ import java.io.Serializable;
                 @GridLayout.Row({ "password" }), @GridLayout.Row({ "role" }), @GridLayout.Row({ "account" }),
                 @GridLayout.Row({ "applicationId" }), @GridLayout.Row({ "consumerKey", "consumerSecret" }),
                 @GridLayout.Row({ "tokenId", "tokenSecret" }) }),
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "enableCustomization" }) }) })
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({}) }) })
 @Documentation("Provides all needed properties for establishing connection")
 public class NetSuiteDataStore implements Serializable {
 
@@ -100,11 +100,6 @@ public class NetSuiteDataStore implements Serializable {
     @Credential
     @Documentation("Token Secret that is used for Token-Based authentication")
     private String tokenSecret;
-
-    @Option
-    @DefaultValue("true")
-    @Documentation("Enables or disables operations with custom records, fields, entities, forms.")
-    private boolean enableCustomization;
 
     /**
      * Supported NetSuite API versions.

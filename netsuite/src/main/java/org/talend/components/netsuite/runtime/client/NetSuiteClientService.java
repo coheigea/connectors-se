@@ -17,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.headers.Header;
-import org.apache.cxf.jaxb.JAXBDataBinding;
 import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
@@ -145,7 +144,7 @@ public abstract class NetSuiteClientService<PortT> {
         Object searchPreferencesObject = createNativeSearchPreferences(searchPreferences);
         try {
             Header searchPreferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), SEARCH_PREFERENCES),
-                    searchPreferencesObject, new JAXBDataBinding(searchPreferencesObject.getClass()));
+                    searchPreferencesObject, JAXBDataBindingCache.getInstance().getBinding(searchPreferencesObject.getClass()));
             setHeader(port, searchPreferencesHeader);
         } catch (JAXBException e) {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.bindingError(), e);
@@ -554,9 +553,13 @@ public abstract class NetSuiteClientService<PortT> {
         Object preferences = createNativePreferences(nsPreferences);
         try {
             Header searchPreferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), SEARCH_PREFERENCES),
-                    searchPreferences, new JAXBDataBinding(searchPreferences.getClass()));
+                    searchPreferences, JAXBDataBindingCache.getInstance().getBinding(searchPreferences.getClass())
+            // new JAXBDataBinding(searchPreferences.getClass())
+            );
             Header preferencesHeader = new Header(new QName(getPlatformMessageNamespaceUri(), PREFERENCES), preferences,
-                    new JAXBDataBinding(preferences.getClass()));
+                    JAXBDataBindingCache.getInstance().getBinding(preferences.getClass())
+            // new JAXBDataBinding(preferences.getClass())
+            );
             setHeader(port, preferencesHeader);
             setHeader(port, searchPreferencesHeader);
         } catch (JAXBException e) {
@@ -574,7 +577,9 @@ public abstract class NetSuiteClientService<PortT> {
                 .ifPresent((appId) -> Optional.ofNullable(createNativeApplicationInfo(credentials)).ifPresent(applicationInfo -> {
                     try {
                         Header appInfoHeader = new Header(new QName(getPlatformMessageNamespaceUri(), APPLICATION_INFO),
-                                applicationInfo, new JAXBDataBinding(applicationInfo.getClass()));
+                                applicationInfo, JAXBDataBindingCache.getInstance().getBinding(applicationInfo.getClass())
+                        // new JAXBDataBinding(applicationInfo.getClass())
+                        );
                         setHeader(port, appInfoHeader);
                     } catch (JAXBException e) {
                         throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), i18n.bindingError(),

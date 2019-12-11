@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toCollection;
 
@@ -54,22 +54,13 @@ public class SearchResultSet<R> implements ResultSet<R> {
      */
     private SearchRecordTypeDesc searchRecordTypeDesc;
 
-    /** NetSuite specific identifier of search. */
-    // private String searchId;
-
     /**
-     * Current search result being processed.
+     * range of pages
      */
-    private NsSearchResult<R> result;
+    private PageSelection pageSelection;
 
-    /**
-     * List of records for current search result.
-     */
-    private List<R> recordList;
+    private Iterator<Integer> pageIterator;
 
-    /**
-     * Iterator of records for current search result.
-     */
     private Iterator<R> recordIterator;
 
     /**
@@ -77,13 +68,7 @@ public class SearchResultSet<R> implements ResultSet<R> {
      */
     private R current;
 
-    /**
-     * set it to get only particular range of pages
-     */
-    private PageSelection pageSelection;
-
-    public SearchResultSet(NetSuiteClientService<?> clientService, String recordTypeName, NsSearchResult<R> result,
-            PageSelection pageSelection) {
+    public SearchResultSet(NetSuiteClientService<?> clientService, String recordTypeName, PageSelection pageSelection) {
         this.clientService = clientService;
         this.pageSelection = pageSelection;
         recordTypeDesc = clientService.getMetaDataSource().getRecordType(recordTypeName);
@@ -94,21 +79,20 @@ public class SearchResultSet<R> implements ResultSet<R> {
                     clientService.getI18n().searchRecordNotFound(recordTypeName));
         }
 
-        this.result = result;
-
-        recordList = prepareRecordList();
-        recordIterator = recordList.iterator();
+        pageIterator = IntStream.range(pageSelection.getFirstPage(), pageSelection.getFirstPage() + pageSelection.getPageCount())
+                .iterator();
+        recordIterator = Collections.emptyIterator();
     }
 
     @Override
     public boolean next() {
-        if (!recordIterator.hasNext() && hasMore()) {
-            recordList = getMoreRecords();
-            recordIterator = recordList.iterator();
-        }
         if (recordIterator.hasNext()) {
             current = recordIterator.next();
             return true;
+        }
+        if (pageIterator.hasNext()) {
+            recordIterator = getRecordIterator(pageIterator.next());
+            return next();
         }
         return false;
     }
@@ -118,56 +102,24 @@ public class SearchResultSet<R> implements ResultSet<R> {
         return current;
     }
 
-    /**
-     * Check whether search has more results that can be retrieved.
-     *
-     * @return {@code true} if there are more results, {@code false} otherwise
-     */
-    protected boolean hasMore() {
-        if (result == null || result.getPageIndex() == null || result.getTotalPages() == null) {
-            return false;
-        }
-        return result.getPageIndex() < pageSelection.getPageOffset() + pageSelection.getPageCount() - 1;
-    }
-
-    /**
-     * Retrieve next page of search results.
-     *
-     * @return list of records from retrieved search result
-     */
-    protected List<R> getMoreRecords() {
-        String searchId = result.getSearchId();
+    private Iterator<R> getRecordIterator(int nextPageIndex) {
+        String searchId = pageSelection.getSearchId();
         if (searchId != null) {
-            int nextPageIndex = result.getPageIndex() + 1;
-            if (result.getPageIndex() < pageSelection.getPageOffset()) {
-                nextPageIndex = pageSelection.getPageOffset();
-            } else if (result.getPageIndex() >= pageSelection.getPageOffset() + pageSelection.getPageCount()) {
-                return Collections.emptyList();
-            }
             NsSearchResult<R> nextPageResult = clientService.searchMoreWithId(searchId, nextPageIndex);
             if (!nextPageResult.isSuccess()) {
                 NetSuiteClientService.checkError(nextPageResult.getStatus());
             }
-            result = nextPageResult;
-            return prepareRecordList();
+            List<R> recordList = nextPageResult.getRecordList();
+            if (recordList == null || recordList.isEmpty()) {
+                return Collections.emptyIterator();
+            }
+            if (BasicRecordType.ITEM.getType().equals(searchRecordTypeDesc.getType())) {
+                return recordList.stream().filter(r -> r.getClass() == recordTypeDesc.getRecordType().getRecordClass())
+                        .collect(toCollection(LinkedList::new)).iterator();
+            } else {
+                return recordList.iterator();
+            }
         }
-        return Collections.emptyList();
-    }
-
-    /**
-     * Filter list of records before returning to a caller.
-     *
-     * @return list of records ready for consuming
-     */
-    protected List<R> prepareRecordList() {
-        List<R> recordList = result.getRecordList();
-        if (recordList == null || recordList.isEmpty() || result.getPageIndex() < pageSelection.getPageOffset()
-                || result.getPageIndex() > pageSelection.getPageOffset() + pageSelection.getPageCount() - 1) {
-            return Collections.emptyList();
-        }
-        Predicate<R> checkRecordTypeClass = r -> r.getClass() == recordTypeDesc.getRecordType().getRecordClass();
-        return BasicRecordType.ITEM.getType().equals(searchRecordTypeDesc.getType())
-                ? recordList.stream().filter(checkRecordTypeClass).collect(toCollection(LinkedList::new))
-                : recordList;
+        return Collections.emptyIterator();
     }
 }
