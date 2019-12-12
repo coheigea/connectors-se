@@ -23,16 +23,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 import java.io.Serializable;
 
 @Data
-@GridLayouts({
-        @GridLayout({
-                @GridLayout.Row({"dataSet"}),
-                @GridLayout.Row({"action"})
-        }),
-        @GridLayout(names = {GridLayout.FormType.ADVANCED}, value = {
-                @GridLayout.Row({"dataSet"}),
-                @GridLayout.Row({"useNativeUpsert"})
-        })
-})
+@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "action" }) }), @GridLayout(names = {
+        GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "useNativeUpsert" }) }) })
 @Documentation("Properties for Output component")
 public class NetSuiteOutputProperties implements Serializable {
 
