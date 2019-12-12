@@ -82,7 +82,6 @@ public class NetSuiteOutputProcessor implements Serializable {
     @PostConstruct
     public void init() {
         NetSuiteService service = new NetSuiteService(recordBuilderFactory, i18n);
-        log.info("Output Processor Data Set: " + configuration.getDataSet());
         clientService = service.getClientService(configuration.getDataSet());
         schema = service.getSchema(configuration.getDataSet(), null);
         referenceDataActionFunction();
