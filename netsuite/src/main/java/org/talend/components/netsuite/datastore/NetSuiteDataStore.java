@@ -34,10 +34,17 @@ import java.io.Serializable;
 @DataStore("NetSuiteConnection")
 @Checkable(UIActionService.HEALTH_CHECK)
 @GridLayouts({
-        @GridLayout({ @GridLayout.Row({ "apiVersion" }), @GridLayout.Row({ "loginType" }), @GridLayout.Row({ "email" }),
-                @GridLayout.Row({ "password" }), @GridLayout.Row({ "role" }), @GridLayout.Row({ "account" }),
-                @GridLayout.Row({ "applicationId" }), @GridLayout.Row({ "consumerKey", "consumerSecret" }),
-                @GridLayout.Row({ "tokenId", "tokenSecret" }) }),
+        @GridLayout({
+                @GridLayout.Row({ "apiVersion" }),
+                @GridLayout.Row({ "account" }),
+                @GridLayout.Row({ "loginType" }),
+                @GridLayout.Row({ "email" }),
+                @GridLayout.Row({ "password" }),
+                @GridLayout.Row({ "role" }),
+                @GridLayout.Row({ "applicationId" }),
+                @GridLayout.Row({ "consumerKey", "consumerSecret" }),
+                @GridLayout.Row({ "tokenId", "tokenSecret" })
+        }),
         @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({}) }) })
 @Documentation("Provides all needed properties for establishing connection")
 public class NetSuiteDataStore implements Serializable {
@@ -46,6 +53,11 @@ public class NetSuiteDataStore implements Serializable {
     @DefaultValue("V2018_2")
     @Documentation("NetSuite API version")
     private ApiVersion apiVersion;
+
+    @Option
+    @Required
+    @Documentation("NetSuite company account")
+    private String account;
 
     @Option
     @DefaultValue("BASIC")
@@ -68,11 +80,6 @@ public class NetSuiteDataStore implements Serializable {
     @Pattern("^[1-9][0-9]*$")
     @Documentation("Role assigned")
     private String role;
-
-    @Option
-    @Required
-    @Documentation("NetSuite company account")
-    private String account;
 
     @Option
     @ActiveIf(target = "loginType", value = "BASIC")

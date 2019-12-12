@@ -25,8 +25,12 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
 
-@GridLayout({ @GridLayout.Row({ "field" }), @GridLayout.Row({ "operator" }), @GridLayout.Row({ "searchValue" }),
-        @GridLayout.Row({ "additionalSearchValue" }) })
+@GridLayout({
+        @GridLayout.Row({ "field" }),
+        @GridLayout.Row({ "operator" }),
+        @GridLayout.Row({ "searchValue" }),
+        @GridLayout.Row({ "additionalSearchValue" })
+})
 @Documentation("Search Condition parameters")
 @Data
 @NoArgsConstructor

@@ -31,9 +31,16 @@ import java.io.Serializable;
 @DataSet
 @AllArgsConstructor
 @NoArgsConstructor
-@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataStore" }), @GridLayout.Row({ "recordType" }) }),
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataStore" }),
-                @GridLayout.Row({ "enableCustomization" }) }) })
+@GridLayouts({
+        @GridLayout({
+                @GridLayout.Row({ "dataStore" }),
+                @GridLayout.Row({ "recordType" })
+        }),
+        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = {
+                @GridLayout.Row({ "dataStore" }),
+                @GridLayout.Row({ "enableCustomization" })
+        })
+})
 @Documentation("Common properties that are present in Input & Output components")
 public class NetSuiteDataSet implements Serializable {
 
