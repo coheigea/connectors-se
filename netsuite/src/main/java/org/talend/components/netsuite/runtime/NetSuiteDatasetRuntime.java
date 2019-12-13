@@ -55,7 +55,7 @@ public class NetSuiteDatasetRuntime {
     }
 
     public Schema getSchema(String typeName, List<String> stringSchema) {
-        final boolean schemaNotDesigned = stringSchema == null;
+        final boolean schemaNotDesigned = (stringSchema == null);
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Type.RECORD);
         metaDataSource.getTypeInfo(typeName).getFields().stream()
                 .filter(field -> schemaNotDesigned

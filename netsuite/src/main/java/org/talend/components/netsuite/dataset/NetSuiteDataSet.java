@@ -47,7 +47,7 @@ public class NetSuiteDataSet implements Serializable {
     private boolean enableCustomization;
 
     @Option
-    @Suggestable(value = UIActionService.LOAD_RECORD_TYPES, parameters = { "dataStore" })
+    @Suggestable(value = UIActionService.LOAD_RECORD_TYPES, parameters = { "dataStore", "enableCustomization" })
     @Documentation("Record Type to be used")
     private String recordType;
 }

@@ -58,19 +58,17 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     private final NetSuiteOutputProperties configuration;
 
-    private NetSuiteClientService<?> clientService;
-
     private RecordBuilderFactory recordBuilderFactory;
 
     private Messages i18n;
 
-    protected NsObjectOutputTransducer transducer;
+    private transient NetSuiteClientService<?> clientService;
 
-    private Function<List<?>, List<NsWriteResponse<?>>> dataActionFunction;
+    private transient NsObjectOutputTransducer transducer;
 
-    private List<Record> inputRecordList;
+    private transient Function<List<?>, List<NsWriteResponse<?>>> dataActionFunction;
 
-    private Schema schema;
+    private transient List<Record> inputRecordList;
 
     public NetSuiteOutputProcessor(@Option("configuration") final NetSuiteOutputProperties configuration,
             RecordBuilderFactory recordBuilderFactory, Messages i18n) {
@@ -83,9 +81,9 @@ public class NetSuiteOutputProcessor implements Serializable {
     public void init() {
         NetSuiteService service = new NetSuiteService(recordBuilderFactory, i18n);
         clientService = service.getClientService(configuration.getDataSet());
-        schema = service.getSchema(configuration.getDataSet(), null);
+        Schema schema = service.getSchema(configuration.getDataSet(), null);
         referenceDataActionFunction();
-        instantiateTransducer();
+        instantiateTransducer(schema);
         inputRecordList = new ArrayList<>();
     }
 
@@ -107,7 +105,7 @@ public class NetSuiteOutputProcessor implements Serializable {
         }
     }
 
-    private void instantiateTransducer() {
+    private void instantiateTransducer(Schema schema) {
         transducer = new NsObjectOutputTransducer(clientService, i18n, configuration.getDataSet().getRecordType(), schema,
                 configuration.getDataSet().getDataStore().getApiVersion().getVersion());
         transducer.setMetaDataSource(clientService.getMetaDataSource());
@@ -134,11 +132,7 @@ public class NetSuiteOutputProcessor implements Serializable {
             return;
         }
         List<Object> nsObjectList = recordList.stream().map(transducer::write).collect(toList());
-        dataActionFunction.apply(nsObjectList).stream().forEach(this::processWriteResponse);
-        cleanWrites();
-    }
-
-    private void cleanWrites() {
+        dataActionFunction.apply(nsObjectList).forEach(this::processWriteResponse);
         inputRecordList.clear();
     }
 

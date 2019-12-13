@@ -12,6 +12,7 @@
  */
 package org.talend.components.netsuite.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.sdk.component.api.configuration.Option;
@@ -26,6 +27,7 @@ import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.annotation.PostConstruct;
 
+@Slf4j
 @Service
 public class UIActionService {
 
@@ -68,7 +70,9 @@ public class UIActionService {
     }
 
     @Suggestions(LOAD_RECORD_TYPES)
-    public SuggestionValues loadRecordTypes(@Option final NetSuiteDataSet dataSet) {
+    public SuggestionValues loadRecordTypes(@Option final NetSuiteDataStore dataStore,
+            @Option final boolean enableCustomization) {
+        NetSuiteDataSet dataSet = new NetSuiteDataSet(dataStore, enableCustomization, null);
         return new SuggestionValues(true, service.getRecordTypes(dataSet));
     }
 
@@ -78,7 +82,7 @@ public class UIActionService {
     }
 
     @Suggestions(LOAD_OPERATORS)
-    public SuggestionValues loadOperators(@Option("dataStore") final NetSuiteDataSet dataSet, String field) {
+    public SuggestionValues loadOperators(@Option final NetSuiteDataSet dataSet, String field) {
         return new SuggestionValues(false, service.getSearchFieldOperators(dataSet, field));
     }
 }

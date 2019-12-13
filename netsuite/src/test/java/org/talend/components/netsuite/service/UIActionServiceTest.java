@@ -79,7 +79,6 @@ class UIActionServiceTest extends NetSuiteBaseTest {
     }
 
     @Test
-    // @Disabled("guess schema functionality is not relevant for pipeline designer")
     void testGuessSchema() {
         log.info("Test 'guess schema' start ");
         List<String> fields = Arrays.stream(PurchaseOrder.class.getDeclaredFields()).map(field -> field.getName().toLowerCase())
@@ -100,7 +99,7 @@ class UIActionServiceTest extends NetSuiteBaseTest {
         List<String> expectedList = Arrays.stream(RecordTypeEnum.values()).map(RecordTypeEnum::getTypeName).sorted()
                 .collect(toList());
         NetSuiteDataSet dataSet = createDefaultDataSet();
-        SuggestionValues values = uiActionService.loadRecordTypes(dataSet);
+        SuggestionValues values = uiActionService.loadRecordTypes(dataSet.getDataStore(), dataSet.isEnableCustomization());
         List<String> actualList = values.getItems().stream().map(Item::getLabel).sorted().collect(toList());
 
         assertIterableEquals(expectedList, actualList);
@@ -111,7 +110,7 @@ class UIActionServiceTest extends NetSuiteBaseTest {
         log.info("Test 'load custom record types' start ");
         NetSuiteDataSet dataSet = createDefaultDataSet();
         dataSet.setEnableCustomization(true);
-        SuggestionValues values = uiActionService.loadRecordTypes(dataSet);
+        SuggestionValues values = uiActionService.loadRecordTypes(dataSet.getDataStore(), dataSet.isEnableCustomization());
         // For enabled customization we must have more record types.
         // Even for passing other tests, they must be defined
         assertTrue(RecordTypeEnum.values().length < values.getItems().size());
