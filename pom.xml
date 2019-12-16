@@ -67,7 +67,7 @@
 
         <locales.version>[1.5,)</locales.version>
 
-        <component-runtime.version>1.1.16-SNAPSHOT</component-runtime.version>
+        <component-runtime.version>1.1.15</component-runtime.version>
         <slf4j.version>1.7.25</slf4j.version>
 
         <beam.version>2.12.0</beam.version>
@@ -476,10 +476,10 @@
                 <version>${spotless.version}</version>
                 <executions>
                     <execution>
-                    <id>apply</id>
-                    <phase>process-classes</phase>
+                        <id>apply</id>
+                        <phase>process-classes</phase>
                         <goals>
-                    <goal>apply</goal>
+                            <goal>apply</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -501,7 +501,7 @@
 */]]></content>
                         </licenseHeader>
                         <eclipse>
-			    <file>talend_java_eclipse_formatter.xml</file>
+                            <file>talend_java_eclipse_formatter.xml</file>
                         </eclipse>
                     </java>
                 </configuration>
@@ -872,8 +872,8 @@
                                             ${maven.multiModuleProjectDirectory}/target/documentation_resources/resources/html
                                         </stylesdir>
                                         <stylesheet>talend.css</stylesheet>
-                                        <data-uri/>
-                                        <toc/>
+                                        <data-uri />
+                                        <toc />
                                     </attributes>
                                 </configuration>
                             </execution>
