@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.MapperConfig;
 import com.fasterxml.jackson.databind.jsontype.NamedType;
+import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -50,8 +51,8 @@ public class NsTypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuild
     }
 
     @Override
-    protected TypeIdResolver idResolver(MapperConfig<?> config, JavaType baseType, Collection<NamedType> subtypes, boolean forSer,
-            boolean forDeser) {
+    protected TypeIdResolver idResolver(MapperConfig<?> config, JavaType baseType, PolymorphicTypeValidator subtypeValidator,
+            Collection<NamedType> subtypes, boolean forSer, boolean forDeser) {
 
         if (_idType == null) {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.INTERNAL_ERROR), "Mapping is not initialized");
