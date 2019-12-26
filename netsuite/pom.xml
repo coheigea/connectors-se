@@ -17,10 +17,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <cxf.version>3.2.6</cxf.version>
         <commons-beanutils.version>1.8.3</commons-beanutils.version>
-        <javapoet.version>1.8.0</javapoet.version>
         <commons-lang3.version>3.7</commons-lang3.version>
-        <jaxb-impl.version>2.3.1</jaxb-impl.version>
-        <jaxb-core.version>2.3.0.1</jaxb-core.version>
+
         <!--
         Set it to true if you want the documentation to be rendered as HTML and PDF
         You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
@@ -28,6 +26,26 @@
         <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jaxb-annotations</artifactId>
+                <exclusions>
+                    <!-- exclude javax.activation to avoid LinkageError -->
+                    <exclusion>
+                        <groupId>jakarta.xml.bind</groupId>
+                        <artifactId>jakarta.xml.bind-api</artifactId>
+                    </exclusion>
+                    <!-- exclude javax.xml to avoid LinkageError -->
+                    <exclusion>
+                        <groupId>jakarta.activation</groupId>
+                        <artifactId>jakarta.activation-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -46,6 +64,7 @@
             <artifactId>jackson-module-jaxb-annotations</artifactId>
             <version>${jackson.version}</version>
         </dependency>
+
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
