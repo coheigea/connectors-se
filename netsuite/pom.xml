@@ -183,6 +183,31 @@
                             <goal>wsdl2java</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <id>generate-sources-2019</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <sourceRoot>${project.build.directory}/generated-sources/cxf</sourceRoot>
+                            <wsdlOptions>
+                                <wsdlOption>
+                                    <wsdl>${basedir}/src/main/resources/wsdl/2019.2/netsuite.wsdl</wsdl>
+                                    <serviceName>NetSuiteService</serviceName>
+                                    <extraargs>
+                                        <extraarg>-xjc-b,${basedir}/src/main/resources/wsdl/2019.2/bindings.jaxb
+                                        </extraarg>
+                                        <extraarg>-xjc-Xbg</extraarg>
+                                        <extraarg>-p</extraarg>
+                                        <extraarg>
+                                            urn:platform_2019_2.webservices.netsuite.com=com.netsuite.webservices.v2019_2.platform
+                                        </extraarg>
+                                    </extraargs>
+                                </wsdlOption>
+                            </wsdlOptions>
+                        </configuration>
+                        <goals>
+                            <goal>wsdl2java</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <dependencies>
                     <dependency>

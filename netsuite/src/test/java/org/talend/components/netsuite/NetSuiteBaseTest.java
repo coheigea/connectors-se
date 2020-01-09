@@ -81,7 +81,7 @@ public abstract class NetSuiteBaseTest {
         Server consumer = decrypter.find("netsuite.consumer");
         Server token = decrypter.find("netsuite.token");
         dataStore = new NetSuiteDataStore();
-        dataStore.setApiVersion(ApiVersion.V2018_2);
+        dataStore.setApiVersion(ApiVersion.V2019_2);
         dataStore.setAccount(NETSUITE_ACCOUNT);
         dataStore.setLoginType(LoginType.TBA);
         dataStore.setConsumerKey(consumer.getUsername());

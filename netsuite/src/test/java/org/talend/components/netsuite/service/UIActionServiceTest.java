@@ -12,13 +12,13 @@
  */
 package org.talend.components.netsuite.service;
 
-import com.netsuite.webservices.v2018_2.platform.common.AccountSearchBasic;
-import com.netsuite.webservices.v2018_2.platform.common.CustomRecordSearchBasic;
-import com.netsuite.webservices.v2018_2.platform.common.TransactionSearchBasic;
-import com.netsuite.webservices.v2018_2.platform.core.types.SearchDate;
-import com.netsuite.webservices.v2018_2.platform.core.types.SearchDateFieldOperator;
-import com.netsuite.webservices.v2018_2.platform.core.types.SearchMultiSelectFieldOperator;
-import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrder;
+import com.netsuite.webservices.v2019_2.platform.common.AccountSearchBasic;
+import com.netsuite.webservices.v2019_2.platform.common.CustomRecordSearchBasic;
+import com.netsuite.webservices.v2019_2.platform.common.TransactionSearchBasic;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchDate;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchDateFieldOperator;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchMultiSelectFieldOperator;
+import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
@@ -31,7 +31,7 @@ import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorName;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorType;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorTypeDesc;
-import org.talend.components.netsuite.runtime.v2018_2.model.RecordTypeEnum;
+import org.talend.components.netsuite.runtime.v2019_2.model.RecordTypeEnum;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
@@ -71,7 +71,7 @@ class UIActionServiceTest extends NetSuiteBaseTest {
         dataStoreWrong.setLoginType(LoginType.BASIC);
         dataStoreWrong.setRole("3");
         dataStoreWrong.setAccount(NETSUITE_ACCOUNT);
-        dataStoreWrong.setApiVersion(ApiVersion.V2018_2);
+        dataStoreWrong.setApiVersion(ApiVersion.V2019_2);
         dataStoreWrong.setEmail("test_junit@talend.com");
         dataStoreWrong.setPassword("wrongPassword");
         dataStoreWrong.setApplicationId(UUID.randomUUID().toString());

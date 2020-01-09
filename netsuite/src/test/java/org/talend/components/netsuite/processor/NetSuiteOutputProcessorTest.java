@@ -12,7 +12,7 @@
  */
 package org.talend.components.netsuite.processor;
 
-import com.netsuite.webservices.v2018_2.platform.core.types.SearchStringFieldOperator;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,7 +64,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
         NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), "Account", "2018.2");
+                netSuiteService.getSchema(dataSet, schemaFields), "Account", "2019.2");
         Record record = inputTransducer.read(() -> SampleData.prepareAccountRecord(null, testIdPrefix));
         buildAndRunCollectorJob(outputProperties, Collections.singletonList(record));
 
@@ -119,7 +119,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
         NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), "customrecordqacomp_custom_recordtype", "2018.2");
+                netSuiteService.getSchema(dataSet, schemaFields), "customrecordqacomp_custom_recordtype", "2019.2");
         NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
         inputDataSet.setDataSet(dataSet);
 
@@ -173,7 +173,7 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
         NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), "PurchaseOrder", "2018.2");
+                netSuiteService.getSchema(dataSet, schemaFields), "PurchaseOrder", "2019.2");
 
         Record record = inputTransducer.read(SampleData::preparePurchaseOrder);
 

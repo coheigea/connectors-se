@@ -12,17 +12,17 @@
  */
 package org.talend.components.netsuite.utils;
 
-import com.netsuite.webservices.v2018_2.lists.accounting.Account;
-import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
-import com.netsuite.webservices.v2018_2.platform.core.CustomFieldList;
-import com.netsuite.webservices.v2018_2.platform.core.RecordRef;
-import com.netsuite.webservices.v2018_2.platform.core.RecordRefList;
-import com.netsuite.webservices.v2018_2.platform.core.StringCustomFieldRef;
-import com.netsuite.webservices.v2018_2.platform.core.types.RecordType;
-import com.netsuite.webservices.v2018_2.setup.customization.CustomRecord;
-import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrder;
-import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrderItem;
-import com.netsuite.webservices.v2018_2.transactions.purchases.PurchaseOrderItemList;
+import com.netsuite.webservices.v2019_2.lists.accounting.Account;
+import com.netsuite.webservices.v2019_2.lists.accounting.types.AccountType;
+import com.netsuite.webservices.v2019_2.platform.core.CustomFieldList;
+import com.netsuite.webservices.v2019_2.platform.core.RecordRef;
+import com.netsuite.webservices.v2019_2.platform.core.RecordRefList;
+import com.netsuite.webservices.v2019_2.platform.core.StringCustomFieldRef;
+import com.netsuite.webservices.v2019_2.platform.core.types.RecordType;
+import com.netsuite.webservices.v2019_2.setup.customization.CustomRecord;
+import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseOrder;
+import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseOrderItem;
+import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseOrderItemList;
 import org.talend.sdk.component.api.record.Record;
 
 import java.util.Arrays;

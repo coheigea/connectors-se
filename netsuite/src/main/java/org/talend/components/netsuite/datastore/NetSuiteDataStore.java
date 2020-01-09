@@ -43,7 +43,7 @@ import java.io.Serializable;
 public class NetSuiteDataStore implements Serializable {
 
     @Option
-    @DefaultValue("V2018_2")
+    @DefaultValue("V2019_2")
     @Documentation("NetSuite API version")
     private ApiVersion apiVersion;
 
@@ -106,7 +106,8 @@ public class NetSuiteDataStore implements Serializable {
      */
     @AllArgsConstructor
     public enum ApiVersion {
-        V2018_2("2018.2", "https://webservices.netsuite.com/services/NetSuitePort_2018_2");
+        V2018_2("2018.2", "https://webservices.netsuite.com/services/NetSuitePort_2018_2"),
+        V2019_2("2019.2", "https://webservices.netsuite.com/services/NetSuitePort_2019_2");
 
         @Getter
         private String version;

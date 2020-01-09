@@ -32,7 +32,7 @@ public class NetSuiteServiceTest extends NetSuiteBaseTest {
     public void testConnectFailedMissingUserCredentials() {
         log.info("Integration test 'test failed missing user credentials' start ");
         NetSuiteDataStore dataStoreLocal = new NetSuiteDataStore();
-        dataStoreLocal.setApiVersion(ApiVersion.V2018_2);
+        dataStoreLocal.setApiVersion(ApiVersion.V2019_2);
 
         // Missing account
         Assertions.assertThrows(NetSuiteException.class, () -> service.connect(dataStoreLocal));
@@ -58,7 +58,7 @@ public class NetSuiteServiceTest extends NetSuiteBaseTest {
     public void testConnectFailedMissingTokenBasedCredentials() {
         log.info("Integration test 'test failed missing token based credentials' start ");
         NetSuiteDataStore dataStoreLocal = new NetSuiteDataStore();
-        dataStoreLocal.setApiVersion(ApiVersion.V2018_2);
+        dataStoreLocal.setApiVersion(ApiVersion.V2019_2);
 
         // Missing account
         Assertions.assertThrows(NetSuiteException.class, () -> service.connect(dataStoreLocal));

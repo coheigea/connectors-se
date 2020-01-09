@@ -17,8 +17,8 @@ import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
 import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
+import org.talend.components.netsuite.runtime.client.NetSuiteClientFactory;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
-import org.talend.components.netsuite.runtime.v2018_2.client.NetSuiteClientFactoryImpl;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
@@ -44,7 +44,18 @@ public class NetSuiteService {
     }
 
     public synchronized void connect(NetSuiteDataStore dataStore) {
-        NetSuiteEndpoint endpoint = new NetSuiteEndpoint(NetSuiteClientFactoryImpl.getFactory(), i18n, dataStore);
+        NetSuiteClientFactory<?> netSuiteClientFactory;
+        switch (dataStore.getApiVersion()) {
+        case V2018_2:
+            netSuiteClientFactory = org.talend.components.netsuite.runtime.v2018_2.client.NetSuiteClientFactoryImpl.getFactory();
+            break;
+        case V2019_2:
+            netSuiteClientFactory = org.talend.components.netsuite.runtime.v2019_2.client.NetSuiteClientFactoryImpl.getFactory();
+            break;
+        default:
+            throw new RuntimeException("Unknown API version: " + dataStore.getApiVersion());
+        }
+        NetSuiteEndpoint endpoint = new NetSuiteEndpoint(netSuiteClientFactory, i18n, dataStore);
         clientService = endpoint.getClientService();
         dataSetRuntime = new NetSuiteDatasetRuntime(clientService.getMetaDataSource(), recordBuilderFactory);
     }

@@ -12,9 +12,9 @@
  */
 package org.talend.components.netsuite.source;
 
-import com.netsuite.webservices.v2018_2.lists.accounting.Account;
-import com.netsuite.webservices.v2018_2.lists.accounting.types.AccountType;
-import com.netsuite.webservices.v2018_2.platform.core.types.SearchStringFieldOperator;
+import com.netsuite.webservices.v2019_2.lists.accounting.Account;
+import com.netsuite.webservices.v2019_2.lists.accounting.types.AccountType;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -147,7 +147,7 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
         NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), "Account", "2018.2");
+                netSuiteService.getSchema(dataSet, schemaFields), "Account", "2019.2");
         List<Record> newRecords = new LinkedList<>();
         for (int i = 0; i < numberOfRecords; i++) {
             int num = i;
