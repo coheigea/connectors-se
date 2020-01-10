@@ -12,90 +12,17 @@
  */
 package org.talend.components.netsuite.runtime.v2019_2.model;
 
-import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
-
 import com.netsuite.webservices.v2019_2.activities.scheduling.CalendarEvent;
 import com.netsuite.webservices.v2019_2.activities.scheduling.PhoneCall;
 import com.netsuite.webservices.v2019_2.activities.scheduling.ProjectTask;
 import com.netsuite.webservices.v2019_2.activities.scheduling.ResourceAllocation;
 import com.netsuite.webservices.v2019_2.activities.scheduling.Task;
+import com.netsuite.webservices.v2019_2.platform.common.LandedCost;
 import com.netsuite.webservices.v2019_2.documents.filecabinet.File;
 import com.netsuite.webservices.v2019_2.documents.filecabinet.Folder;
 import com.netsuite.webservices.v2019_2.general.communication.Message;
 import com.netsuite.webservices.v2019_2.general.communication.Note;
-import com.netsuite.webservices.v2019_2.lists.accounting.Account;
-import com.netsuite.webservices.v2019_2.lists.accounting.AccountingPeriod;
-import com.netsuite.webservices.v2019_2.lists.accounting.AssemblyItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.BillingSchedule;
-import com.netsuite.webservices.v2019_2.lists.accounting.Bin;
-import com.netsuite.webservices.v2019_2.lists.accounting.Bom;
-import com.netsuite.webservices.v2019_2.lists.accounting.BomRevision;
-import com.netsuite.webservices.v2019_2.lists.accounting.BudgetCategory;
-import com.netsuite.webservices.v2019_2.lists.accounting.Classification;
-import com.netsuite.webservices.v2019_2.lists.accounting.ConsolidatedExchangeRate;
-import com.netsuite.webservices.v2019_2.lists.accounting.ContactCategory;
-import com.netsuite.webservices.v2019_2.lists.accounting.ContactRole;
-import com.netsuite.webservices.v2019_2.lists.accounting.CostCategory;
-import com.netsuite.webservices.v2019_2.lists.accounting.Currency;
-import com.netsuite.webservices.v2019_2.lists.accounting.CurrencyRate;
-import com.netsuite.webservices.v2019_2.lists.accounting.CustomerCategory;
-import com.netsuite.webservices.v2019_2.lists.accounting.CustomerMessage;
-import com.netsuite.webservices.v2019_2.lists.accounting.Department;
-import com.netsuite.webservices.v2019_2.lists.accounting.DescriptionItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.DiscountItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.DownloadItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.ExpenseCategory;
-import com.netsuite.webservices.v2019_2.lists.accounting.FairValuePrice;
-import com.netsuite.webservices.v2019_2.lists.accounting.GeneralToken;
-import com.netsuite.webservices.v2019_2.lists.accounting.GiftCertificate;
-import com.netsuite.webservices.v2019_2.lists.accounting.GiftCertificateItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.GlobalAccountMapping;
-import com.netsuite.webservices.v2019_2.lists.accounting.InventoryItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.InventoryNumber;
-import com.netsuite.webservices.v2019_2.lists.accounting.ItemAccountMapping;
-import com.netsuite.webservices.v2019_2.lists.accounting.ItemGroup;
-import com.netsuite.webservices.v2019_2.lists.accounting.ItemRevision;
-import com.netsuite.webservices.v2019_2.lists.accounting.KitItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.LeadSource;
-import com.netsuite.webservices.v2019_2.lists.accounting.Location;
-import com.netsuite.webservices.v2019_2.lists.accounting.LotNumberedAssemblyItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.LotNumberedInventoryItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.MarkupItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.Nexus;
-import com.netsuite.webservices.v2019_2.lists.accounting.NonInventoryPurchaseItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.NonInventoryResaleItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.NonInventorySaleItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.NoteType;
-import com.netsuite.webservices.v2019_2.lists.accounting.OtherChargePurchaseItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.OtherChargeResaleItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.OtherChargeSaleItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.OtherNameCategory;
-import com.netsuite.webservices.v2019_2.lists.accounting.PartnerCategory;
-import com.netsuite.webservices.v2019_2.lists.accounting.PaymentCard;
-import com.netsuite.webservices.v2019_2.lists.accounting.PaymentCardToken;
-import com.netsuite.webservices.v2019_2.lists.accounting.PaymentItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.PaymentMethod;
-import com.netsuite.webservices.v2019_2.lists.accounting.PriceLevel;
-import com.netsuite.webservices.v2019_2.lists.accounting.PricingGroup;
-import com.netsuite.webservices.v2019_2.lists.accounting.RevRecSchedule;
-import com.netsuite.webservices.v2019_2.lists.accounting.RevRecTemplate;
-import com.netsuite.webservices.v2019_2.lists.accounting.SalesRole;
-import com.netsuite.webservices.v2019_2.lists.accounting.SalesTaxItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.SerializedAssemblyItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.SerializedInventoryItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.ServicePurchaseItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.ServiceResaleItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.ServiceSaleItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.State;
-import com.netsuite.webservices.v2019_2.lists.accounting.Subsidiary;
-import com.netsuite.webservices.v2019_2.lists.accounting.SubtotalItem;
-import com.netsuite.webservices.v2019_2.lists.accounting.TaxAcct;
-import com.netsuite.webservices.v2019_2.lists.accounting.TaxGroup;
-import com.netsuite.webservices.v2019_2.lists.accounting.TaxType;
-import com.netsuite.webservices.v2019_2.lists.accounting.Term;
-import com.netsuite.webservices.v2019_2.lists.accounting.UnitsType;
-import com.netsuite.webservices.v2019_2.lists.accounting.VendorCategory;
-import com.netsuite.webservices.v2019_2.lists.accounting.WinLossReason;
+import com.netsuite.webservices.v2019_2.lists.accounting.*;
 import com.netsuite.webservices.v2019_2.lists.employees.Employee;
 import com.netsuite.webservices.v2019_2.lists.employees.HcmJob;
 import com.netsuite.webservices.v2019_2.lists.employees.PayrollItem;
@@ -115,12 +42,14 @@ import com.netsuite.webservices.v2019_2.lists.relationships.BillingAccount;
 import com.netsuite.webservices.v2019_2.lists.relationships.Contact;
 import com.netsuite.webservices.v2019_2.lists.relationships.Customer;
 import com.netsuite.webservices.v2019_2.lists.relationships.CustomerStatus;
+import com.netsuite.webservices.v2019_2.lists.relationships.CustomerSubsidiaryRelationship;
 import com.netsuite.webservices.v2019_2.lists.relationships.EntityGroup;
 import com.netsuite.webservices.v2019_2.lists.relationships.Job;
 import com.netsuite.webservices.v2019_2.lists.relationships.JobStatus;
 import com.netsuite.webservices.v2019_2.lists.relationships.JobType;
 import com.netsuite.webservices.v2019_2.lists.relationships.Partner;
 import com.netsuite.webservices.v2019_2.lists.relationships.Vendor;
+import com.netsuite.webservices.v2019_2.lists.relationships.VendorSubsidiaryRelationship;
 import com.netsuite.webservices.v2019_2.lists.supplychain.ManufacturingCostTemplate;
 import com.netsuite.webservices.v2019_2.lists.supplychain.ManufacturingOperationTask;
 import com.netsuite.webservices.v2019_2.lists.supplychain.ManufacturingRouting;
@@ -136,12 +65,14 @@ import com.netsuite.webservices.v2019_2.lists.support.Topic;
 import com.netsuite.webservices.v2019_2.lists.website.SiteCategory;
 import com.netsuite.webservices.v2019_2.platform.common.Address;
 import com.netsuite.webservices.v2019_2.platform.common.InventoryDetail;
-import com.netsuite.webservices.v2019_2.platform.common.LandedCost;
 import com.netsuite.webservices.v2019_2.setup.customization.CrmCustomField;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomList;
+import com.netsuite.webservices.v2019_2.setup.customization.CustomPurchase;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomRecord;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomRecordCustomField;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomRecordType;
+import com.netsuite.webservices.v2019_2.setup.customization.CustomSale;
+import com.netsuite.webservices.v2019_2.setup.customization.CustomSegment;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomTransaction;
 import com.netsuite.webservices.v2019_2.setup.customization.EntityCustomField;
 import com.netsuite.webservices.v2019_2.setup.customization.ItemCustomField;
@@ -169,10 +100,11 @@ import com.netsuite.webservices.v2019_2.transactions.employees.TimeBill;
 import com.netsuite.webservices.v2019_2.transactions.employees.TimeEntry;
 import com.netsuite.webservices.v2019_2.transactions.employees.TimeSheet;
 import com.netsuite.webservices.v2019_2.transactions.financial.Budget;
-import com.netsuite.webservices.v2019_2.transactions.general.AdvInterCompanyJournalEntry;
 import com.netsuite.webservices.v2019_2.transactions.general.InterCompanyJournalEntry;
 import com.netsuite.webservices.v2019_2.transactions.general.JournalEntry;
+import com.netsuite.webservices.v2019_2.transactions.general.PeriodEndJournal;
 import com.netsuite.webservices.v2019_2.transactions.general.StatisticalJournalEntry;
+import com.netsuite.webservices.v2019_2.transactions.general.AdvInterCompanyJournalEntry;
 import com.netsuite.webservices.v2019_2.transactions.inventory.AssemblyBuild;
 import com.netsuite.webservices.v2019_2.transactions.inventory.AssemblyUnbuild;
 import com.netsuite.webservices.v2019_2.transactions.inventory.BinTransfer;
@@ -186,8 +118,8 @@ import com.netsuite.webservices.v2019_2.transactions.inventory.WorkOrder;
 import com.netsuite.webservices.v2019_2.transactions.inventory.WorkOrderClose;
 import com.netsuite.webservices.v2019_2.transactions.inventory.WorkOrderCompletion;
 import com.netsuite.webservices.v2019_2.transactions.inventory.WorkOrderIssue;
-import com.netsuite.webservices.v2019_2.transactions.purchases.InboundShipment;
 import com.netsuite.webservices.v2019_2.transactions.purchases.ItemReceipt;
+import com.netsuite.webservices.v2019_2.transactions.purchases.InboundShipment;
 import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseOrder;
 import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseRequisition;
 import com.netsuite.webservices.v2019_2.transactions.purchases.VendorBill;
@@ -201,6 +133,11 @@ import com.netsuite.webservices.v2019_2.transactions.sales.ItemFulfillment;
 import com.netsuite.webservices.v2019_2.transactions.sales.Opportunity;
 import com.netsuite.webservices.v2019_2.transactions.sales.SalesOrder;
 import com.netsuite.webservices.v2019_2.transactions.sales.Usage;
+import java.lang.Class;
+import java.lang.Override;
+import java.lang.String;
+
+import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 
 /**
  *
@@ -292,6 +229,7 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     CREDIT_MEMO("creditMemo", "CreditMemo", CreditMemo.class, "transaction"),
 
+    //CustomFieldType subclass
     CRM_CUSTOM_FIELD("crmCustomField", "CrmCustomField", CrmCustomField.class, null),
 
     CURRENCY("currency", "Currency", Currency.class, "item"),
@@ -300,11 +238,18 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     CUSTOM_LIST("customList", "CustomList", CustomList.class, "customList"),
 
+    CUSTOM_PURCHASE("customPurchase", "CustomPurchase", CustomPurchase.class, "transaction"),
+
     CUSTOM_RECORD("customRecord", "CustomRecord", CustomRecord.class, "customRecord"),
 
+    //CustomFieldType subclass
     CUSTOM_RECORD_CUSTOM_FIELD("customRecordCustomField", "CustomRecordCustomField", CustomRecordCustomField.class, null),
 
     CUSTOM_RECORD_TYPE("customRecordType", "CustomRecordType", CustomRecordType.class, null),
+
+    CUSTOM_SALE("customSale", "CustomSale", CustomSale.class, "transaction"),
+
+    CUSTOM_SEGMENT("customSegment", "CustomSegment", CustomSegment.class, null),
 
     CUSTOM_TRANSACTION("customTransaction", "CustomTransaction", CustomTransaction.class, "transaction"),
 
@@ -322,6 +267,12 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     CUSTOMER_STATUS("customerStatus", "CustomerStatus", CustomerStatus.class, "customerStatus"),
 
+    CUSTOMER_SUBSIDIARY_RELATIONSHIP(
+            "customerSubsidiaryRelationship",
+            "CustomerSubsidiaryRelationship",
+            CustomerSubsidiaryRelationship.class,
+            "customerSubsidiaryRelationship"),
+
     DEPARTMENT("department", "Department", Department.class, "department"),
 
     DEPOSIT("deposit", "Deposit", Deposit.class, "transaction"),
@@ -336,6 +287,7 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     EMPLOYEE("employee", "Employee", Employee.class, "employee"),
 
+    //CustomFieldType subclass
     ENTITY_CUSTOM_FIELD("entityCustomField", "EntityCustomField", EntityCustomField.class, null),
 
     ENTITY_GROUP("entityGroup", "EntityGroup", EntityGroup.class, "entityGroup"),
@@ -396,6 +348,7 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     ITEM_ACCOUNT_MAPPING("itemAccountMapping", "ItemAccountMapping", ItemAccountMapping.class, "itemAccountMapping"),
 
+    //CustomFieldType subclass
     ITEM_CUSTOM_FIELD("itemCustomField", "ItemCustomField", ItemCustomField.class, null),
 
     ITEM_DEMAND_PLAN("itemDemandPlan", "ItemDemandPlan", ItemDemandPlan.class, "itemDemandPlan"),
@@ -404,8 +357,10 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     ITEM_GROUP("itemGroup", "ItemGroup", ItemGroup.class, "item"),
 
+    //CustomFieldType subclass
     ITEM_NUMBER_CUSTOM_FIELD("itemNumberCustomField", "ItemNumberCustomField", ItemNumberCustomField.class, null),
 
+    //CustomFieldType subclass
     ITEM_OPTION_CUSTOM_FIELD("itemOptionCustomField", "ItemOptionCustomField", ItemOptionCustomField.class, null),
 
     ITEM_RECEIPT("itemReceipt", "ItemReceipt", ItemReceipt.class, "transaction"),
@@ -452,6 +407,12 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     MARKUP_ITEM("markupItem", "MarkupItem", MarkupItem.class, "item"),
 
+    MERCHANDISE_HIERARCHY_NODE(
+            "merchandiseHierarchyNode",
+            "MerchandiseHierarchyNode",
+            MerchandiseHierarchyNode.class,
+            "merchandiseHierarchyNode"),
+
     MESSAGE("message", "Message", Message.class, "message"),
 
     NEXUS("nexus", "Nexus", Nexus.class, "nexus"),
@@ -474,6 +435,7 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     OTHER_CHARGE_SALE_ITEM("otherChargeSaleItem", "OtherChargeSaleItem", OtherChargeSaleItem.class, "item"),
 
+    //CustomFieldType subclass
     OTHER_CUSTOM_FIELD("otherCustomField", "OtherCustomField", OtherCustomField.class, null),
 
     OTHER_NAME_CATEGORY("otherNameCategory", "OtherNameCategory", OtherNameCategory.class, "otherNameCategory"),
@@ -495,6 +457,8 @@ public enum RecordTypeEnum implements RecordTypeDesc {
     PAYMENT_METHOD("paymentMethod", "PaymentMethod", PaymentMethod.class, "paymentMethod"),
 
     PAYROLL_ITEM("payrollItem", "PayrollItem", PayrollItem.class, "payrollItem"),
+
+    PERIOD_END_JOURNAL("periodEndJournal", "PeriodEndJournal", PeriodEndJournal.class, null),
 
     PHONE_CALL("phoneCall", "PhoneCall", PhoneCall.class, "phoneCall"),
 
@@ -576,12 +540,14 @@ public enum RecordTypeEnum implements RecordTypeDesc {
 
     TOPIC("topic", "Topic", Topic.class, "topic"),
 
+    //CustomFieldType subclass
     TRANSACTION_BODY_CUSTOM_FIELD(
             "transactionBodyCustomField",
             "TransactionBodyCustomField",
             TransactionBodyCustomField.class,
             null),
 
+    //CustomFieldType subclass
     TRANSACTION_COLUMN_CUSTOM_FIELD(
             "transactionColumnCustomField",
             "TransactionColumnCustomField",
@@ -609,6 +575,12 @@ public enum RecordTypeEnum implements RecordTypeDesc {
             "VendorReturnAuthorization",
             VendorReturnAuthorization.class,
             "transaction"),
+
+    VENDOR_SUBSIDIARY_RELATIONSHIP(
+            "vendorSubsidiaryRelationship",
+            "VendorSubsidiaryRelationship",
+            VendorSubsidiaryRelationship.class,
+            "vendorSubsidiaryRelationship"),
 
     WIN_LOSS_REASON("winLossReason", "WinLossReason", WinLossReason.class, "winLossReason"),
 
