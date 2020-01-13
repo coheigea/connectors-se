@@ -246,11 +246,7 @@ public enum RecordTypeEnum implements RecordTypeDesc {
             InterCompanyTransferOrder.class,
             "transaction"),
     INVENTORY_ADJUSTMENT("inventoryAdjustment", "InventoryAdjustment", InventoryAdjustment.class, "transaction"),
-    INVENTORY_COST_REVALUATION(
-            "inventoryCostRevaluation",
-            "InventoryCostRevaluation",
-            InventoryCostRevaluation.class,
-            null),
+    INVENTORY_COST_REVALUATION("inventoryCostRevaluation", "InventoryCostRevaluation", InventoryCostRevaluation.class, null),
     INVENTORY_DETAIL("inventoryDetail", "InventoryDetail", InventoryDetail.class, "inventoryDetail"),
     INVENTORY_ITEM("inventoryItem", "InventoryItem", InventoryItem.class, "item"),
     INVENTORY_NUMBER("inventoryNumber", "InventoryNumber", InventoryNumber.class, "inventoryNumber"),
