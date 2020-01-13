@@ -12,6 +12,8 @@
  */
 package org.talend.components.netsuite.runtime.v2019_2.model;
 
+import com.netsuite.webservices.v2019_2.lists.accounting.*;
+import com.netsuite.webservices.v2019_2.platform.common.*;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 
 import com.netsuite.webservices.v2019_2.activities.scheduling.CalendarEventSearch;
@@ -32,84 +34,6 @@ import com.netsuite.webservices.v2019_2.general.communication.MessageSearch;
 import com.netsuite.webservices.v2019_2.general.communication.MessageSearchAdvanced;
 import com.netsuite.webservices.v2019_2.general.communication.NoteSearch;
 import com.netsuite.webservices.v2019_2.general.communication.NoteSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.AccountSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.AccountSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.AccountingPeriodSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.AccountingPeriodSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.BillingScheduleSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.BillingScheduleSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.BinSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.BinSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.BomRevisionSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.BomRevisionSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.BomSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.BomSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.ClassificationSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.ClassificationSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.ConsolidatedExchangeRateSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.ConsolidatedExchangeRateSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.ContactCategorySearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.ContactCategorySearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.ContactRoleSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.ContactRoleSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.CostCategorySearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.CostCategorySearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.CurrencyRateSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.CurrencyRateSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.CustomerCategorySearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.CustomerCategorySearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.CustomerMessageSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.CustomerMessageSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.DepartmentSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.DepartmentSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.ExpenseCategorySearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.ExpenseCategorySearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.FairValuePriceSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.FairValuePriceSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.GiftCertificateSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.GiftCertificateSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.GlobalAccountMappingSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.GlobalAccountMappingSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.InventoryNumberSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.InventoryNumberSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.ItemAccountMappingSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.ItemAccountMappingSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.ItemRevisionSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.ItemRevisionSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.ItemSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.ItemSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.LocationSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.LocationSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.NexusSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.NexusSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.NoteTypeSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.NoteTypeSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.OtherNameCategorySearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.OtherNameCategorySearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.PartnerCategorySearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.PartnerCategorySearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.PaymentMethodSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.PaymentMethodSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.PriceLevelSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.PriceLevelSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.PricingGroupSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.PricingGroupSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.RevRecScheduleSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.RevRecScheduleSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.RevRecTemplateSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.RevRecTemplateSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.SalesRoleSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.SalesRoleSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.SubsidiarySearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.SubsidiarySearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.TermSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.TermSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.UnitsTypeSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.UnitsTypeSearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.VendorCategorySearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.VendorCategorySearchAdvanced;
-import com.netsuite.webservices.v2019_2.lists.accounting.WinLossReasonSearch;
-import com.netsuite.webservices.v2019_2.lists.accounting.WinLossReasonSearchAdvanced;
 import com.netsuite.webservices.v2019_2.lists.employees.EmployeeSearch;
 import com.netsuite.webservices.v2019_2.lists.employees.EmployeeSearchAdvanced;
 import com.netsuite.webservices.v2019_2.lists.employees.HcmJobSearch;
@@ -158,95 +82,6 @@ import com.netsuite.webservices.v2019_2.lists.support.TopicSearch;
 import com.netsuite.webservices.v2019_2.lists.support.TopicSearchAdvanced;
 import com.netsuite.webservices.v2019_2.lists.website.SiteCategorySearch;
 import com.netsuite.webservices.v2019_2.lists.website.SiteCategorySearchAdvanced;
-import com.netsuite.webservices.v2019_2.platform.common.AccountSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.AccountingPeriodSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.AccountingTransactionSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.AddressSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.BillingAccountSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.BillingScheduleSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.BinSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.BomRevisionSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.BomSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.BudgetSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CalendarEventSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CampaignSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ChargeSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ClassificationSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ConsolidatedExchangeRateSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ContactCategorySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ContactRoleSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ContactSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CostCategorySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CouponCodeSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CurrencyRateSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CustomListSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CustomRecordSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CustomerCategorySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CustomerMessageSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CustomerSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.CustomerStatusSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.DepartmentSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.EmployeeSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.EntityGroupSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ExpenseCategorySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.FairValuePriceSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.FileSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.FolderSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.GiftCertificateSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.GlobalAccountMappingSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.HcmJobSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.InboundShipmentSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.InventoryDetailSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.InventoryNumberSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.IssueSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ItemAccountMappingSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ItemDemandPlanSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ItemRevisionSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ItemSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ItemSupplyPlanSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.JobSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.JobStatusSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.JobTypeSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.LocationSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ManufacturingCostTemplateSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ManufacturingOperationTaskSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ManufacturingRoutingSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.MessageSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.NexusSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.NoteSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.NoteTypeSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.OpportunitySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.OtherNameCategorySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.PartnerCategorySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.PartnerSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.PaycheckSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.PaymentMethodSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.PayrollItemSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.PhoneCallSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.PriceLevelSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.PricingGroupSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ProjectTaskSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.PromotionCodeSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.ResourceAllocationSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.RevRecScheduleSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.RevRecTemplateSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.SalesRoleSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.SiteCategorySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.SolutionSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.SubsidiarySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.SupportCaseSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.TaskSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.TermSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.TimeBillSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.TimeEntrySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.TimeSheetSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.TopicSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.TransactionSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.UnitsTypeSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.UsageSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.VendorCategorySearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.VendorSearchBasic;
-import com.netsuite.webservices.v2019_2.platform.common.WinLossReasonSearchBasic;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomListSearch;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomListSearchAdvanced;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomRecordSearch;
@@ -633,6 +468,13 @@ public enum SearchRecordTypeEnum implements SearchRecordTypeDesc {
 
     SALES_ROLE("salesRole", "SalesRole", SalesRoleSearch.class, SalesRoleSearchBasic.class, SalesRoleSearchAdvanced.class),
 
+    SALES_TAX_ITEM(
+            "salesTaxItem",
+            "SalesTaxItem",
+            SalesTaxItemSearch.class,
+            SalesTaxItemSearchBasic.class,
+            SalesTaxItemSearchAdvanced.class),
+
     SITE_CATEGORY(
             "siteCategory",
             "SiteCategory",
@@ -652,6 +494,10 @@ public enum SearchRecordTypeEnum implements SearchRecordTypeDesc {
             SupportCaseSearchAdvanced.class),
 
     TASK("task", "Task", TaskSearch.class, TaskSearchBasic.class, TaskSearchAdvanced.class),
+
+    TAX_GROUP("taxGroup", "TaxGroup", TaxGroupSearch.class, TaxGroupSearchBasic.class, TaxGroupSearchAdvanced.class),
+
+    TAX_TYPE("taxType", "TaxType", TaxTypeSearch.class, TaxTypeSearchBasic.class, TaxTypeSearchAdvanced.class),
 
     TERM("term", "Term", TermSearch.class, TermSearchBasic.class, TermSearchAdvanced.class),
 
