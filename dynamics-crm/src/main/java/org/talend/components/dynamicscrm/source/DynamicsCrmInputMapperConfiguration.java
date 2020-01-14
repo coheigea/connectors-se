@@ -20,10 +20,13 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import lombok.Data;
+
+@Data
 @GridLayout({
         // the generated layout put one configuration entry per line,
         // customize it as much as needed
-        @GridLayout.Row({ "dataset" }) })
+        @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "filter" }) })
 @Documentation("TODO fill the documentation for this configuration")
 public class DynamicsCrmInputMapperConfiguration implements Serializable {
 
@@ -31,12 +34,8 @@ public class DynamicsCrmInputMapperConfiguration implements Serializable {
     @Documentation("TODO fill the documentation for this parameter")
     private DynamicsCrmDataset dataset;
 
-    public DynamicsCrmDataset getDataset() {
-        return dataset;
-    }
+    @Option
+    @Documentation("Filter")
+    private String filter;
 
-    public DynamicsCrmInputMapperConfiguration setDataset(DynamicsCrmDataset dataset) {
-        this.dataset = dataset;
-        return this;
-    }
 }

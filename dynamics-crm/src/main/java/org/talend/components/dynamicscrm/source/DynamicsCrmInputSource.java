@@ -16,11 +16,24 @@ import java.io.Serializable;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.naming.AuthenticationException;
 
+import org.apache.olingo.client.api.communication.request.retrieve.EdmMetadataRequest;
+import org.apache.olingo.client.api.communication.response.ODataRetrieveResponse;
+import org.apache.olingo.client.api.domain.ClientEntity;
+import org.apache.olingo.commons.api.edm.Edm;
+import org.apache.olingo.commons.api.edm.EdmEntityContainer;
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
+import org.apache.olingo.commons.api.edm.EdmEntityType;
+import org.talend.components.dynamicscrm.service.DynamicsCrmException;
+import org.talend.components.dynamicscrm.service.I18n;
+import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
 import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import org.talend.components.dynamicscrm.service.DynamicsCrmService;
@@ -34,6 +47,15 @@ public class DynamicsCrmInputSource implements Serializable {
 
     private final RecordBuilderFactory builderFactory;
 
+    private DynamicsCRMClient client;
+
+    private DynamicsCrmQueryResultsIterator iterator;
+
+    @Service
+    private I18n i18n;
+
+    private Schema schema;
+
     public DynamicsCrmInputSource(@Option("configuration") final DynamicsCrmInputMapperConfiguration configuration,
             final DynamicsCrmService service, final RecordBuilderFactory builderFactory) {
         this.configuration = configuration;
@@ -43,17 +65,22 @@ public class DynamicsCrmInputSource implements Serializable {
 
     @PostConstruct
     public void init() {
-        // this method will be executed once for the whole component execution,
-        // this is where you can establish a connection for instance
+        try {
+            client = service.createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet());
+        } catch (AuthenticationException e) {
+            throw new DynamicsCrmException(i18n.authenticationFailed(e.getMessage()));
+        }
+        schema = service.getSchemaForEntitySet(client, configuration.getDataset().getEntitySet(), builderFactory);
+        iterator = service.getEntitySetIterator(client, service.createQueryOptionConfig(schema, configuration));
     }
 
     @Producer
     public Record next() {
-        // this is the method allowing you to go through the dataset associated
-        // to the component configuration
-        //
-        // return null means the dataset has no more data to go through
-        // you can use the builderFactory to create a new Record.
+        if (iterator.hasNext()) {
+            Record.Builder rb = builderFactory.newRecordBuilder(schema);
+            ClientEntity entity = iterator.next();
+            // service.convertToTckRecord(entity, schema, rb);
+        }
         return null;
     }
 
