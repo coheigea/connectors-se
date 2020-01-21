@@ -70,23 +70,20 @@ public class DynamicsCrmInputSource implements Serializable {
         } catch (AuthenticationException e) {
             throw new DynamicsCrmException(i18n.authenticationFailed(e.getMessage()));
         }
-        schema = service.getSchemaForEntitySet(client, configuration.getDataset().getEntitySet(), builderFactory);
+        schema = service.getSchemaForEntitySet(client, configuration.getDataset().getEntitySet(), null, builderFactory);
         iterator = service.getEntitySetIterator(client, service.createQueryOptionConfig(schema, configuration));
     }
 
     @Producer
     public Record next() {
         if (iterator.hasNext()) {
-            Record.Builder rb = builderFactory.newRecordBuilder(schema);
-            ClientEntity entity = iterator.next();
-            // service.convertToTckRecord(entity, schema, rb);
+            return service.createRecord(iterator.next(), schema, builderFactory);
         }
         return null;
     }
 
     @PreDestroy
     public void release() {
-        // this is the symmetric method of the init() one,
-        // release potential connections you created or data you cached
+        iterator = null;
     }
 }

@@ -27,4 +27,6 @@ public interface I18n {
 
     String metadataRetrieveFailed(String message);
 
+    String failedParsingBytesValue(String message);
+
 }

@@ -44,7 +44,7 @@ public class UIActionService {
     @Service
     private DynamicsCrmService service;
 
-    @HealthCheck(UIActionService.ACTION_HEALTHCHECK)
+    @HealthCheck(ACTION_HEALTHCHECK)
     public HealthCheckStatus validateConnection(@Option final DynamicsCrmConnection connection) {
         try {
             service.createClient(connection, null);

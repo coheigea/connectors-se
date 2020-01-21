@@ -12,13 +12,13 @@
  */
 package org.talend.components.dynamicscrm.service;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.olingo.client.api.communication.request.retrieve.EdmMetadataRequest;
 import org.apache.olingo.client.api.communication.request.retrieve.ODataEntitySetRequest;
 import org.apache.olingo.client.api.communication.response.ODataRetrieveResponse;
-import org.apache.olingo.client.api.domain.ClientEntity;
-import org.apache.olingo.client.api.domain.ClientEntitySet;
-import org.apache.olingo.client.api.domain.ClientProperty;
-import org.apache.olingo.client.api.domain.ClientValue;
+import org.apache.olingo.client.api.domain.*;
+import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.constants.EdmTypeKind;
 import org.apache.olingo.commons.core.edm.primitivetype.EdmPrimitiveTypeFactory;
@@ -41,6 +41,9 @@ import java.sql.Timestamp;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class DynamicsCrmService {
 
@@ -52,6 +55,15 @@ public class DynamicsCrmService {
         final String[] names = schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())
                 .toArray(new String[0]);
         config.setReturnEntityProperties(names);
+        if (configuration.getFilter() != null && !configuration.getFilter().isEmpty()) {
+            config.setFilter(configuration.getFilter());
+        }
+        return config;
+    }
+
+    public QueryOptionConfig createQueryOptionConfig(String[] fields, DynamicsCrmInputMapperConfiguration configuration) {
+        QueryOptionConfig config = new QueryOptionConfig();
+        config.setReturnEntityProperties(fields);
         if (configuration.getFilter() != null && !configuration.getFilter().isEmpty()) {
             config.setFilter(configuration.getFilter());
         }
@@ -99,7 +111,24 @@ public class DynamicsCrmService {
         return new DynamicsCrmQueryResultsIterator(client, config, response.getBody());
     }
 
-    public Schema getSchemaForEntitySet(DynamicsCRMClient client, String entitySetName, RecordBuilderFactory builderFactory) {
+    public Schema getSchemaForEntitySet(DynamicsCRMClient client, String entitySetName, List<String> columnNames,
+            RecordBuilderFactory builderFactory) {
+        Edm metadata = getMetadata(client);
+        EdmEntityContainer container = metadata.getEntityContainer();
+        EdmEntitySet entitySet = container.getEntitySet(entitySetName);
+        EdmEntityType type = entitySet.getEntityType();
+        return parseSchema(metadata, type, columnNames, builderFactory);
+    }
+
+    public Schema getSchemaFromMetadata(Edm metadata, String entitySetName, List<String> columnNames,
+            RecordBuilderFactory builderFactory) {
+        EdmEntityContainer container = metadata.getEntityContainer();
+        EdmEntitySet entitySet = container.getEntitySet(entitySetName);
+        EdmEntityType type = entitySet.getEntityType();
+        return parseSchema(metadata, type, columnNames, builderFactory);
+    }
+
+    public Edm getMetadata(DynamicsCRMClient client) {
         EdmMetadataRequest metadataRequest = client.createMetadataRetrieveRequest();
         Edm metadata;
         try {
@@ -108,37 +137,54 @@ public class DynamicsCrmService {
         } catch (Exception e) {
             throw new DynamicsCrmException(i18n.metadataRetrieveFailed(e.getMessage()));
         }
-        EdmEntityContainer container = metadata.getEntityContainer();
-        EdmEntitySet entitySet = container.getEntitySet(entitySetName);
-        EdmEntityType type = entitySet.getEntityType();
-        return parseSchema(metadata, type, builderFactory);
+        return metadata;
     }
 
-    public Schema parseSchema(Edm edm, EdmStructuredType type, RecordBuilderFactory builderFactory) {
+    private Schema parseSchema(Edm edm, EdmStructuredType type, List<String> columnNames, RecordBuilderFactory builderFactory) {
+        if (columnNames == null || columnNames.isEmpty()) {
+            columnNames = type.getPropertyNames();
+        }
+        Schema.Builder schemaBuilder = builderFactory.newSchemaBuilder(Schema.Type.RECORD);
+        columnNames.forEach(f -> schemaBuilder.withEntry(
+                builderFactory.newEntryBuilder().withName(f).withType(getTckType((EdmProperty) type.getProperty(f), edm))
+                        .withElementSchema(getSubSchema(edm, (EdmProperty) type.getProperty(f), builderFactory))
+                        .withNullable(((EdmProperty) type.getProperty(f)).isNullable()).build()));
+        return schemaBuilder.build();
+    }
+
+    private Schema parseSchema(Edm edm, EdmStructuredType type, RecordBuilderFactory builderFactory) {
         Schema.Builder schemaBuilder = builderFactory.newSchemaBuilder(Schema.Type.RECORD);
         type.getPropertyNames().stream()
                 .forEach(f -> schemaBuilder.withEntry(
-                        builderFactory.newEntryBuilder().withName(f).withType(getTckType((EdmProperty) type.getProperty(f)))
+                        builderFactory.newEntryBuilder().withName(f).withType(getTckType((EdmProperty) type.getProperty(f), edm))
                                 .withElementSchema(getSubSchema(edm, (EdmProperty) type.getProperty(f), builderFactory))
                                 .withNullable(((EdmProperty) type.getProperty(f)).isNullable()).build()));
         return schemaBuilder.build();
     }
 
-    public Schema getSubSchema(Edm edm, EdmProperty edmElement, RecordBuilderFactory builderFactory) {
-        if (edmElement.isPrimitive()) {
-            return builderFactory.newSchemaBuilder(getTckType(edmElement)).build();
+    private Schema getSubSchema(Edm edm, EdmProperty edmElement, RecordBuilderFactory builderFactory) {
+        if (edmElement.getName().equalsIgnoreCase("_transactioncurrencyid_value")) {
+            System.out.println(edmElement.getType().getKind());
+        }
+        if (edmElement.getType().getKind() != EdmTypeKind.COMPLEX) {
+            return builderFactory.newSchemaBuilder(getElementType(edmElement.getType())).build();
         }
 
         return parseSchema(edm, edm.getComplexType(edmElement.getType().getFullQualifiedName()), builderFactory);
     }
 
-    protected Schema.Type getTckType(EdmProperty edmElement) {
+    private Schema.Type getTckType(EdmProperty edmElement, Edm edm) {
         if (edmElement.isCollection()) {
             return Schema.Type.ARRAY;
-        } else if (edmElement.getType().getKind() == EdmTypeKind.COMPLEX) {
+        }
+        return getElementType(edmElement.getType());
+    }
+
+    private Schema.Type getElementType(EdmType edmType) {
+        if (edmType.getKind() == EdmTypeKind.COMPLEX) {
             return Schema.Type.RECORD;
         }
-        switch (edmElement.getType().getName()) {
+        switch (edmType.getFullQualifiedName().getFullQualifiedNameAsString()) {
         case "Edm.Boolean":
             return Schema.Type.BOOLEAN;
         case "Edm.Binary":
@@ -147,12 +193,11 @@ public class DynamicsCrmService {
         case "Edm.SByte":
         case "Edm.Int16":
         case "Edm.Int32":
-            // Contains a date and time as an offset in minutes from GMT.
-        case "Edm.DateTimeOffset":
             return Schema.Type.INT;
         case "Edm.Int64":
             return Schema.Type.LONG;
         case "Edm.DateTime":
+        case "Edm.DateTimeOffset":
         case "Edm.Time":
             return Schema.Type.DATETIME;
         case "Edm.Double":
@@ -165,54 +210,106 @@ public class DynamicsCrmService {
         default:
             return Schema.Type.STRING;
         }
-
     }
 
-    public void convertToTckRecord(ClientEntity entity, Schema schema, Record.Builder rb, RecordBuilderFactory builderFactory) {
-        for (Schema.Entry entry : schema.getEntries()) {
-            ClientProperty property = entity.getProperty(entry.getName());
-            if (property.hasCollectionValue()) {
-                Iterator<ClientValue> valuesIterator = property.getCollectionValue().iterator();
-                while (valuesIterator.hasNext()) {
-                    ClientValue value = valuesIterator.next();
+    public Record createRecord(ClientEntity entity, Schema schema, RecordBuilderFactory builderFactory) {
+        final Record.Builder recordBuilder = builderFactory.newRecordBuilder(schema);
+        schema.getEntries().stream()
+                .forEach(entry -> setValue(entity.getProperty(entry.getName()).getValue(), entry, recordBuilder, builderFactory));
+        return recordBuilder.build();
+    }
 
-                }
+    private Record createRecord(ClientComplexValue value, Schema schema, RecordBuilderFactory builderFactory) {
+        final Record.Builder recordBuilder = builderFactory.newRecordBuilder(schema);
+        schema.getEntries().stream()
+                .forEach(entry -> setValue(value.get(entry.getName()).getValue(), entry, recordBuilder, builderFactory));
+        return recordBuilder.build();
+    }
+
+    private void setValue(ClientValue value, Schema.Entry entry, Record.Builder recordBuilder,
+            RecordBuilderFactory builderFactory) {
+        if (value == null) {
+            return;
+        }
+        Object convertedValue = getValue(value, entry, builderFactory);
+        if (convertedValue == null) {
+            return;
+        }
+        final Schema.Entry.Builder entryBuilder = builderFactory.newEntryBuilder();
+        Schema.Type type = entry.getType();
+        entryBuilder.withNullable(entry.isNullable()).withName(entry.getName()).withType(type);
+
+        try {
+            switch (type) {
+            case ARRAY:
+                Schema elementSchema = entry.getElementSchema();
+                entryBuilder.withElementSchema(elementSchema);
+                Collection<Object> objects = (Collection<Object>) convertedValue;
+                recordBuilder.withArray(entryBuilder.build(), objects);
+                break;
+            case INT:
+                recordBuilder.withInt(entryBuilder.build(), (Integer) convertedValue);
+                break;
+            case LONG:
+                recordBuilder.withLong(entryBuilder.build(), (Long) convertedValue);
+                break;
+            case BOOLEAN:
+                recordBuilder.withBoolean(entryBuilder.build(), (Boolean) convertedValue);
+                break;
+            case FLOAT:
+                recordBuilder.withFloat(entryBuilder.build(), (Float) convertedValue);
+                break;
+            case DOUBLE:
+                recordBuilder.withDouble(entryBuilder.build(), (Double) convertedValue);
+                break;
+            case BYTES:
+                recordBuilder.withBytes(entryBuilder.build(), (byte[]) convertedValue);
+                break;
+            case DATETIME:
+                recordBuilder.withDateTime(entryBuilder.build(), (Timestamp) convertedValue);
+                break;
+            case RECORD:
+                entryBuilder.withElementSchema(entry.getElementSchema());
+                recordBuilder.withRecord(entryBuilder.build(), (Record) convertedValue);
+                break;
+            case STRING:
+            default:
+                recordBuilder.withString(entryBuilder.build(), (String) convertedValue);
+                break;
             }
+        } catch (Exception e) {
+            System.out.println(value.getTypeName() + ": " + entry.getType() + "(" + entry.getElementSchema() + ") = "
+                    + value.asPrimitive().toValue());
         }
     }
 
-    public Record convertToRecord(ClientEntity entity, Schema schema, RecordBuilderFactory builderFactory) {
-        Record.Builder rb = builderFactory.newRecordBuilder(schema);
-        for (Schema.Entry entry : schema.getEntries()) {
-            ClientProperty property = entity.getProperty(entry.getName());
-            if (property.hasCollectionValue()) {
-                Iterator<ClientValue> valuesIterator = property.getCollectionValue().iterator();
-                while (valuesIterator.hasNext()) {
-                    ClientValue value = valuesIterator.next();
+    private Object getValue(ClientValue value, Schema.Entry entry, RecordBuilderFactory builderFactory) {
+        return getValue(value, entry.getType(), entry.getElementSchema(), builderFactory);
+    }
 
-                }
-            }
+    private Object getValue(ClientValue value, Schema schema, RecordBuilderFactory builderFactory) {
+        return getValue(value, schema.getType(), schema, builderFactory);
+    }
+
+    private Object getValue(ClientValue value, Schema.Type type, Schema elementSchema, RecordBuilderFactory builderFactory) {
+        if (value.isEnum()) {
+            return value.asEnum().getValue();
         }
-        return rb.build();
-    }
 
-    public void setValue(ClientProperty property, Schema schema, Record.Builder recordBuilder,
-            RecordBuilderFactory builderFactory) {
-
-    }
-
-    public void setValue(ClientValue value, Schema.Entry entry, Record.Builder recordBuilder,
-            RecordBuilderFactory builderFactory) {
-        switch (entry.getType()) {
+        if (value == null || (value.isPrimitive() && value.asPrimitive().toValue() == null)) {
+            return null;
+        }
+        switch (type) {
+        case ARRAY:
+            final Collection<Object> objects = new ArrayList<>();
+            value.asCollection().forEach(val -> objects.add(getValue(val, elementSchema, builderFactory)));
+            return objects;
         case INT:
-            recordBuilder.withInt(entry, (Integer) value.asPrimitive().toValue());
-            break;
         case LONG:
-            recordBuilder.withLong(entry, (Long) value.asPrimitive().toValue());
-            break;
+        case DOUBLE:
+        case DATETIME:
         case BOOLEAN:
-            recordBuilder.withBoolean(entry, (Boolean) value.asPrimitive().toValue());
-            break;
+            return value.asPrimitive().toValue();
         case FLOAT:
             float floatValue;
             if (value.getTypeName().equals("Edm.Decimal")) {
@@ -220,42 +317,31 @@ public class DynamicsCrmService {
             } else {
                 floatValue = ((Float) value.asPrimitive().toValue()).floatValue();
             }
-            recordBuilder.withFloat(entry, floatValue);
-            break;
-        case DOUBLE:
-            recordBuilder.withDouble(entry, (Double) value.asPrimitive().toValue());
-            break;
+            return floatValue;
         case BYTES:
             byte[] bytesValue;
             if ("Edm.Binary".equals(value.getTypeName())) {
                 bytesValue = (byte[]) value.asPrimitive().toValue();
             } else {
-                EdmPrimitiveType binaryType = EdmPrimitiveTypeFactory
-                        .getInstance(org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind.Binary);
+                EdmPrimitiveType binaryType = EdmPrimitiveTypeFactory.getInstance(EdmPrimitiveTypeKind.Binary);
                 try {
-                    bytesValue = (byte[]) binaryType.valueOfString(value.toString(), null, null,
-                            org.apache.olingo.commons.api.Constants.DEFAULT_PRECISION,
-                            org.apache.olingo.commons.api.Constants.DEFAULT_SCALE, null, byte[].class);
+                    bytesValue = binaryType.valueOfString(value.toString(), null, null, Constants.DEFAULT_PRECISION,
+                            Constants.DEFAULT_SCALE, null, byte[].class);
                 } catch (EdmPrimitiveTypeException e) {
-                    bytesValue = null;
+                    String errorMessage = i18n.failedParsingBytesValue(e.getMessage());
+                    log.error(errorMessage);
+                    throw new DynamicsCrmException(errorMessage, e);
                 }
             }
-            recordBuilder.withBytes(entry, bytesValue);
-            break;
-        case DATETIME:
-            recordBuilder.withDateTime(entry, (Timestamp) value.asPrimitive().toValue());
-            break;
+            return bytesValue;
         case RECORD:
-            Record.Builder innerRecordBuilder = builderFactory.newRecordBuilder(entry.getElementSchema());
-            entry.getElementSchema().getEntries().stream()
-                    .forEach(innerEntry -> setValue(value.asComplex().get(innerEntry.getName()).getValue(), innerEntry,
-                            innerRecordBuilder, builderFactory));
-            recordBuilder.withRecord(entry, innerRecordBuilder.build());
-            break;
+            if (value.asComplex() == null) {
+                return null;
+            }
+            return createRecord(value.asComplex(), elementSchema, builderFactory);
         case STRING:
         default:
-            recordBuilder.withString(entry, value.asPrimitive().toValue().toString());
-            break;
+            return value.toString();
         }
     }
 

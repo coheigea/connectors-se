@@ -39,7 +39,7 @@ public class DynamicsCrmConnection implements Serializable {
 
     @Option
     @Required
-    @Documentation("Application type")
+    @Documentation("Select the type of your application, either Native App or Web App with delegated permissions.")
     private AppType appType = AppType.Native;
 
     @Option

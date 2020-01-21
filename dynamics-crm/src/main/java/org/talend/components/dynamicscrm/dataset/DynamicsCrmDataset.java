@@ -15,7 +15,9 @@ package org.talend.components.dynamicscrm.dataset;
 import java.io.Serializable;
 
 import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
+import org.talend.components.dynamicscrm.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.type.DataSet;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -36,7 +38,8 @@ public class DynamicsCrmDataset implements Serializable {
     private DynamicsCrmConnection datastore;
 
     @Option
-    @Documentation("TODO fill the documentation for this parameter")
+    @Suggestable(value = UIActionService.ACTION_ENTITY_SETS, parameters = { "datastore" })
+    @Documentation("Name of entity set")
     private String entitySet;
 
 }
