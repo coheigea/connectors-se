@@ -33,12 +33,10 @@ import java.io.Serializable;
 @Data
 @DataStore("NetSuiteConnection")
 @Checkable(UIActionService.HEALTH_CHECK)
-@GridLayouts({
-        @GridLayout({ @GridLayout.Row({ "apiVersion" }), @GridLayout.Row({ "account" }), @GridLayout.Row({ "loginType" }),
-                @GridLayout.Row({ "email" }), @GridLayout.Row({ "password" }), @GridLayout.Row({ "role" }),
-                @GridLayout.Row({ "applicationId" }), @GridLayout.Row({ "consumerKey", "consumerSecret" }),
-                @GridLayout.Row({ "tokenId", "tokenSecret" }) }),
-        @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({}) }) })
+@GridLayouts({ @GridLayout({ @GridLayout.Row({ "apiVersion" }), @GridLayout.Row({ "account" }), @GridLayout.Row({ "loginType" }),
+        @GridLayout.Row({ "email" }), @GridLayout.Row({ "password" }), @GridLayout.Row({ "role" }),
+        @GridLayout.Row({ "applicationId" }), @GridLayout.Row({ "consumerKey", "consumerSecret" }),
+        @GridLayout.Row({ "tokenId", "tokenSecret" }) }) })
 @Documentation("Provides all needed properties for establishing connection")
 public class NetSuiteDataStore implements Serializable {
 
