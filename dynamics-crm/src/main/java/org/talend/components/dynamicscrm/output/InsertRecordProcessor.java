@@ -13,6 +13,14 @@
 
 package org.talend.components.dynamicscrm.output;
 
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.apache.olingo.client.api.ODataClient;
 import org.apache.olingo.client.api.domain.ClientCollectionValue;
 import org.apache.olingo.client.api.domain.ClientComplexValue;
@@ -32,14 +40,6 @@ import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
-import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 public class InsertRecordProcessor implements RecordProcessor {
 
     private final DynamicsCRMClient client;
@@ -54,22 +54,35 @@ public class InsertRecordProcessor implements RecordProcessor {
 
     private final Edm metadata;
 
-    public InsertRecordProcessor(final DynamicsCRMClient client, final I18n i18n, final EdmEntitySet entitySet, final DynamicsCrmOutputConfiguration configuration, final Edm metadata){
+    public InsertRecordProcessor(final DynamicsCRMClient client, final I18n i18n, final EdmEntitySet entitySet,
+            final DynamicsCrmOutputConfiguration configuration, final Edm metadata) {
         this.client = client;
         this.i18n = i18n;
         this.entitySet = entitySet;
         this.configuration = configuration;
-        this.lookupMapping = Optional.ofNullable(configuration.getLookupMapping()).orElse(Collections.emptyList()).stream().collect(Collectors.toMap(LookupMapping::getInputColumn, LookupMapping::getReferenceEntitySet));
+        this.lookupMapping = Optional
+                .ofNullable(configuration.getLookupMapping())
+                .orElse(Collections.emptyList())
+                .stream()
+                .collect(Collectors.toMap(LookupMapping::getInputColumn, LookupMapping::getReferenceEntitySet));
         this.metadata = metadata;
     }
 
-    @Override public void processRecord(Record record) {
-        Set<String> keys = entitySet.getEntityType().getKeyPropertyRefs().stream().map(EdmKeyPropertyRef::getName).collect(
-                Collectors.toSet());
-        Set<String> columnNames = record.getSchema().getEntries().stream()
-                                        .map(Schema.Entry::getName)
-                                        .filter(n -> !keys.contains(n))
-                                        .collect(Collectors.toSet());
+    @Override
+    public void processRecord(Record record) {
+        Set<String> keys = entitySet
+                .getEntityType()
+                .getKeyPropertyRefs()
+                .stream()
+                .map(EdmKeyPropertyRef::getName)
+                .collect(Collectors.toSet());
+        Set<String> columnNames = record
+                .getSchema()
+                .getEntries()
+                .stream()
+                .map(Schema.Entry::getName)
+                .filter(n -> !keys.contains(n))
+                .collect(Collectors.toSet());
         ClientEntity entity = createEntity(columnNames, record);
         try {
             client.insertEntity(entity);
@@ -79,19 +92,22 @@ public class InsertRecordProcessor implements RecordProcessor {
     }
 
     protected ClientEntity createEntity(Set<String> columnNames, Record record) {
-        ClientEntity entity = client.getClient().getObjectFactory().newEntity(entitySet.getEntityType().getFullQualifiedName());
-        for(Map.Entry<String, String> lookupEntry : lookupMapping.entrySet()) {
-            if(columnNames.contains(lookupEntry.getKey())) {
-                client.addEntityNavigationLink(entity, lookupEntry.getValue(), lookupEntry.getKey(), record.getString(lookupEntry.getKey()), configuration.isEmptyStringToNull(),
-                        configuration.isIgnoreNull());
+        ClientEntity entity =
+                client.getClient().getObjectFactory().newEntity(entitySet.getEntityType().getFullQualifiedName());
+        for (Map.Entry<String, String> lookupEntry : lookupMapping.entrySet()) {
+            if (columnNames.contains(lookupEntry.getKey())) {
+                client
+                        .addEntityNavigationLink(entity, lookupEntry.getValue(), lookupEntry.getKey(),
+                                record.getString(lookupEntry.getKey()), configuration.isEmptyStringToNull(),
+                                configuration.isIgnoreNull());
             }
         }
-        for(Schema.Entry entry : record.getSchema().getEntries()) {
-            if(!columnNames.contains(entry.getName())) {
+        for (Schema.Entry entry : record.getSchema().getEntries()) {
+            if (!columnNames.contains(entry.getName())) {
                 continue;
             }
             ClientProperty property = convertToProperty(record, entry, entitySet.getEntityType());
-            if(property != null) {
+            if (property != null) {
                 entity.getProperties().add(property);
             }
         }
@@ -99,14 +115,20 @@ public class InsertRecordProcessor implements RecordProcessor {
     }
 
     protected ClientProperty convertRecordToProperty(Record record, EdmStructuredType valueType, String name) {
-        return client.getClient().getObjectFactory().newComplexProperty(name, getComplexValueFromRecord(record, valueType));
+        return client
+                .getClient()
+                .getObjectFactory()
+                .newComplexProperty(name, getComplexValueFromRecord(record, valueType));
     }
 
     protected ClientComplexValue getComplexValueFromRecord(Record record, EdmStructuredType valueType) {
-        ClientComplexValue value = client.getClient().getObjectFactory().newComplexValue(valueType.getFullQualifiedName().getFullQualifiedNameAsString());
+        ClientComplexValue value = client
+                .getClient()
+                .getObjectFactory()
+                .newComplexValue(valueType.getFullQualifiedName().getFullQualifiedNameAsString());
         record.getSchema().getEntries().forEach(e -> {
             ClientProperty property = convertToProperty(record, e, valueType);
-            if(property != null || !configuration.isIgnoreNull()) {
+            if (property != null || !configuration.isIgnoreNull()) {
                 value.add(property);
             }
         });
@@ -115,18 +137,19 @@ public class InsertRecordProcessor implements RecordProcessor {
 
     protected ClientProperty convertToProperty(Record fromRecord, Schema.Entry entry, EdmStructuredType entityType) {
         String name = entry.getName();
-        switch(entry.getType()) {
+        switch (entry.getType()) {
         case ARRAY:
             return processArray(fromRecord, entityType, name, entry);
         case RECORD:
             Record subRecord = fromRecord.getRecord(name);
-            EdmStructuredType subEntityType = metadata.getComplexType(entityType.getProperty(name).getType().getFullQualifiedName());
+            EdmStructuredType subEntityType =
+                    metadata.getComplexType(entityType.getProperty(name).getType().getFullQualifiedName());
             return convertRecordToProperty(subRecord, subEntityType, name);
         case STRING:
             return processString(fromRecord, entityType.getProperty(name), name);
         case INT:
             Integer intValue;
-            if(fromRecord.getOptionalInt(name).isPresent()) {
+            if (fromRecord.getOptionalInt(name).isPresent()) {
                 intValue = fromRecord.getOptionalInt(name).getAsInt();
             } else {
                 intValue = null;
@@ -134,7 +157,7 @@ public class InsertRecordProcessor implements RecordProcessor {
             return processPrimitive(entityType, name, intValue);
         case DOUBLE:
             Double doubleValue;
-            if(fromRecord.getOptionalDouble(name).isPresent()) {
+            if (fromRecord.getOptionalDouble(name).isPresent()) {
                 doubleValue = fromRecord.getOptionalDouble(name).getAsDouble();
             } else {
                 doubleValue = null;
@@ -142,7 +165,7 @@ public class InsertRecordProcessor implements RecordProcessor {
             return processPrimitive(entityType, name, doubleValue);
         case LONG:
             Long longValue;
-            if(fromRecord.getOptionalLong(name).isPresent()) {
+            if (fromRecord.getOptionalLong(name).isPresent()) {
                 longValue = fromRecord.getOptionalLong(name).getAsLong();
             } else {
                 longValue = null;
@@ -150,7 +173,7 @@ public class InsertRecordProcessor implements RecordProcessor {
             return processPrimitive(entityType, name, longValue);
         case FLOAT:
             Double floatValue;
-            if(fromRecord.getOptionalFloat(name).isPresent()) {
+            if (fromRecord.getOptionalFloat(name).isPresent()) {
                 floatValue = fromRecord.getOptionalFloat(name).getAsDouble();
             } else {
                 floatValue = null;
@@ -164,7 +187,7 @@ public class InsertRecordProcessor implements RecordProcessor {
             return processPrimitive(entityType, name, bytesValue);
         case DATETIME:
             Date dateValue = null;
-            if(fromRecord.getOptionalDateTime(name).isPresent()) {
+            if (fromRecord.getOptionalDateTime(name).isPresent()) {
                 dateValue = Date.from(fromRecord.getOptionalDateTime(name).get().toInstant());
             }
             return processPrimitive(entityType, name, dateValue);
@@ -173,35 +196,63 @@ public class InsertRecordProcessor implements RecordProcessor {
         }
     }
 
-    private ClientProperty processArray(Record fromRecord, EdmStructuredType entityType, String name, Schema.Entry entry) {
+    private ClientProperty processArray(Record fromRecord, EdmStructuredType entityType, String name,
+            Schema.Entry entry) {
         ODataClient odataClient = client.getClient();
-        ClientCollectionValue<ClientValue> collectionValue = odataClient.getObjectFactory().newCollectionValue(entityType.getProperty(name).getType().getName());
+        ClientCollectionValue<ClientValue> collectionValue =
+                odataClient.getObjectFactory().newCollectionValue(entityType.getProperty(name).getType().getName());
         Schema elementSchema = entry.getElementSchema();
         Schema.Type subType = elementSchema.getType();
-        switch(subType) {
+        switch (subType) {
         case RECORD:
-            fromRecord.getOptionalArray(Record.class, name).orElse(Collections.emptyList()).forEach(r -> collectionValue.add(getComplexValueFromRecord(r, metadata.getComplexType(entityType.getProperty(name).getType().getFullQualifiedName()))));
+            fromRecord
+                    .getOptionalArray(Record.class, name)
+                    .orElse(Collections.emptyList())
+                    .forEach(r -> collectionValue
+                            .add(getComplexValueFromRecord(r, metadata
+                                    .getComplexType(entityType.getProperty(name).getType().getFullQualifiedName()))));
             break;
         case STRING:
-            fromRecord.getOptionalArray(String.class, name).orElse(Collections.emptyList()).forEach(s -> collectionValue.add(getStringValue(s, odataClient, entityType.getProperty(name))));
+            fromRecord
+                    .getOptionalArray(String.class, name)
+                    .orElse(Collections.emptyList())
+                    .forEach(s -> collectionValue.add(getStringValue(s, odataClient, entityType.getProperty(name))));
             break;
         case INT:
-            fromRecord.getOptionalArray(Integer.class, name).orElse(Collections.emptyList()).forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
+            fromRecord
+                    .getOptionalArray(Integer.class, name)
+                    .orElse(Collections.emptyList())
+                    .forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
             break;
         case DOUBLE:
-            fromRecord.getOptionalArray(Double.class, name).orElse(Collections.emptyList()).forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
+            fromRecord
+                    .getOptionalArray(Double.class, name)
+                    .orElse(Collections.emptyList())
+                    .forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
             break;
         case LONG:
-            fromRecord.getOptionalArray(Long.class, name).orElse(Collections.emptyList()).forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
+            fromRecord
+                    .getOptionalArray(Long.class, name)
+                    .orElse(Collections.emptyList())
+                    .forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
             break;
         case FLOAT:
-            fromRecord.getOptionalArray(Float.class, name).orElse(Collections.emptyList()).forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
+            fromRecord
+                    .getOptionalArray(Float.class, name)
+                    .orElse(Collections.emptyList())
+                    .forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
             break;
         case BOOLEAN:
-            fromRecord.getOptionalArray(Boolean.class, name).orElse(Collections.emptyList()).forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
+            fromRecord
+                    .getOptionalArray(Boolean.class, name)
+                    .orElse(Collections.emptyList())
+                    .forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
             break;
         case BYTES:
-            fromRecord.getOptionalArray(byte[].class, name).orElse(Collections.emptyList()).forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
+            fromRecord
+                    .getOptionalArray(byte[].class, name)
+                    .orElse(Collections.emptyList())
+                    .forEach(s -> collectionValue.add(getPrimitiveValue(s, entityType.getProperty(name), odataClient)));
             break;
         case DATETIME:
             fromRecord.getOptionalArray(ZonedDateTime.class, name).orElse(Collections.emptyList()).forEach(s -> {
@@ -214,60 +265,121 @@ public class InsertRecordProcessor implements RecordProcessor {
     }
 
     private <T> ClientProperty processPrimitive(EdmStructuredType entityType, String name, T value) {
-        if(value == null && configuration.isIgnoreNull()) {
+        if (value == null && configuration.isIgnoreNull()) {
             return null;
         } else {
-            EdmPrimitiveTypeKind primitiveTypeKind = EdmPrimitiveTypeKind.valueOfFQN(entityType.getProperty(name).getType().getFullQualifiedName());
-            return client.getClient().getObjectFactory().newPrimitiveProperty(name, client.getClient().getObjectFactory().newPrimitiveValueBuilder().setType(primitiveTypeKind).setValue(value).build());
+            EdmPrimitiveTypeKind primitiveTypeKind =
+                    EdmPrimitiveTypeKind.valueOfFQN(entityType.getProperty(name).getType().getFullQualifiedName());
+            return client
+                    .getClient()
+                    .getObjectFactory()
+                    .newPrimitiveProperty(name,
+                            client
+                                    .getClient()
+                                    .getObjectFactory()
+                                    .newPrimitiveValueBuilder()
+                                    .setType(primitiveTypeKind)
+                                    .setValue(value)
+                                    .build());
         }
     }
 
     private ClientProperty processString(Record fromRecord, EdmElement propType, String name) {
         String value = fromRecord.getOptionalString(name).orElse(null);
         ODataClient odataClient = client.getClient();
-        if(value == null && configuration.isIgnoreNull()) {
+        if (value == null && configuration.isIgnoreNull()) {
             return null;
         } else if (propType.getType().getKind() == EdmTypeKind.ENUM) {
-            return odataClient.getObjectFactory().newEnumProperty(name, odataClient.getObjectFactory().newEnumValue(propType.getType().getName(), value));
+            return odataClient
+                    .getObjectFactory()
+                    .newEnumProperty(name,
+                            odataClient.getObjectFactory().newEnumValue(propType.getType().getName(), value));
         } else if (propType.getType().getKind() == EdmTypeKind.PRIMITIVE) {
-            EdmPrimitiveTypeKind primitiveTypeKind = EdmPrimitiveTypeKind.valueOfFQN(propType.getType().getFullQualifiedName());
+            EdmPrimitiveTypeKind primitiveTypeKind =
+                    EdmPrimitiveTypeKind.valueOfFQN(propType.getType().getFullQualifiedName());
             if (primitiveTypeKind == EdmPrimitiveTypeKind.Guid) {
-                if(value == null) {
-                    return odataClient.getObjectFactory().newPrimitiveProperty(name, odataClient.getObjectFactory().newPrimitiveValueBuilder().setType(EdmPrimitiveTypeKind.Guid).setValue(null).build());
+                if (value == null) {
+                    return odataClient
+                            .getObjectFactory()
+                            .newPrimitiveProperty(name,
+                                    odataClient
+                                            .getObjectFactory()
+                                            .newPrimitiveValueBuilder()
+                                            .setType(EdmPrimitiveTypeKind.Guid)
+                                            .setValue(null)
+                                            .build());
                 }
-                return odataClient.getObjectFactory().newPrimitiveProperty(name, odataClient.getObjectFactory().newPrimitiveValueBuilder().setType(EdmPrimitiveTypeKind.Guid).setValue(java.util.UUID.fromString(value)).build());
+                return odataClient
+                        .getObjectFactory()
+                        .newPrimitiveProperty(name,
+                                odataClient
+                                        .getObjectFactory()
+                                        .newPrimitiveValueBuilder()
+                                        .setType(EdmPrimitiveTypeKind.Guid)
+                                        .setValue(java.util.UUID.fromString(value))
+                                        .build());
             } else {
-                return odataClient.getObjectFactory().newPrimitiveProperty(name, odataClient.getObjectFactory().newPrimitiveValueBuilder().setType(primitiveTypeKind).setValue(value).build());
+                return odataClient
+                        .getObjectFactory()
+                        .newPrimitiveProperty(name,
+                                odataClient
+                                        .getObjectFactory()
+                                        .newPrimitiveValueBuilder()
+                                        .setType(primitiveTypeKind)
+                                        .setValue(value)
+                                        .build());
             }
         }
         return null;
     }
 
     private ClientValue getStringValue(String value, ODataClient odataClient, EdmElement propType) {
-        if(value == null && configuration.isIgnoreNull()) {
+        if (value == null && configuration.isIgnoreNull()) {
             return null;
         } else if (propType.getType().getKind() == EdmTypeKind.ENUM) {
             return odataClient.getObjectFactory().newEnumValue(propType.getType().getName(), value);
         } else if (propType.getType().getKind() == EdmTypeKind.PRIMITIVE) {
-            EdmPrimitiveTypeKind primitiveTypeKind = EdmPrimitiveTypeKind.valueOfFQN(propType.getType().getFullQualifiedName());
+            EdmPrimitiveTypeKind primitiveTypeKind =
+                    EdmPrimitiveTypeKind.valueOfFQN(propType.getType().getFullQualifiedName());
             if (primitiveTypeKind == EdmPrimitiveTypeKind.Guid) {
-                if(value == null) {
-                    return odataClient.getObjectFactory().newPrimitiveValueBuilder().setType(EdmPrimitiveTypeKind.Guid).setValue(null).build();
+                if (value == null) {
+                    return odataClient
+                            .getObjectFactory()
+                            .newPrimitiveValueBuilder()
+                            .setType(EdmPrimitiveTypeKind.Guid)
+                            .setValue(null)
+                            .build();
                 }
-                return odataClient.getObjectFactory().newPrimitiveValueBuilder().setType(EdmPrimitiveTypeKind.Guid).setValue(java.util.UUID.fromString(value)).build();
+                return odataClient
+                        .getObjectFactory()
+                        .newPrimitiveValueBuilder()
+                        .setType(EdmPrimitiveTypeKind.Guid)
+                        .setValue(java.util.UUID.fromString(value))
+                        .build();
             } else {
-                return odataClient.getObjectFactory().newPrimitiveValueBuilder().setType(primitiveTypeKind).setValue(value).build();
+                return odataClient
+                        .getObjectFactory()
+                        .newPrimitiveValueBuilder()
+                        .setType(primitiveTypeKind)
+                        .setValue(value)
+                        .build();
             }
         }
         return null;
     }
 
     private <T> ClientValue getPrimitiveValue(T value, EdmElement prop, ODataClient odataClient) {
-        if(value == null && configuration.isIgnoreNull()) {
+        if (value == null && configuration.isIgnoreNull()) {
             return null;
         } else {
-            EdmPrimitiveTypeKind primitiveTypeKind = EdmPrimitiveTypeKind.valueOfFQN(prop.getType().getFullQualifiedName());
-            return odataClient.getObjectFactory().newPrimitiveValueBuilder().setType(primitiveTypeKind).setValue(value).build();
+            EdmPrimitiveTypeKind primitiveTypeKind =
+                    EdmPrimitiveTypeKind.valueOfFQN(prop.getType().getFullQualifiedName());
+            return odataClient
+                    .getObjectFactory()
+                    .newPrimitiveValueBuilder()
+                    .setType(primitiveTypeKind)
+                    .setValue(value)
+                    .build();
         }
     }
 

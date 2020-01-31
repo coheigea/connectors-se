@@ -18,14 +18,9 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.naming.AuthenticationException;
 
-import org.apache.olingo.client.api.communication.request.retrieve.EdmMetadataRequest;
-import org.apache.olingo.client.api.communication.response.ODataRetrieveResponse;
-import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.commons.api.edm.Edm;
-import org.apache.olingo.commons.api.edm.EdmEntityContainer;
-import org.apache.olingo.commons.api.edm.EdmEntitySet;
-import org.apache.olingo.commons.api.edm.EdmEntityType;
 import org.talend.components.dynamicscrm.service.DynamicsCrmException;
+import org.talend.components.dynamicscrm.service.DynamicsCrmService;
 import org.talend.components.dynamicscrm.service.I18n;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.configuration.Option;
@@ -35,8 +30,6 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import org.talend.components.dynamicscrm.service.DynamicsCrmService;
 
 @Documentation("TODO fill the documentation for this source")
 public class DynamicsCrmInputSource implements Serializable {
@@ -68,12 +61,14 @@ public class DynamicsCrmInputSource implements Serializable {
     @PostConstruct
     public void init() {
         try {
-            client = service.createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet());
+            client = service
+                    .createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet());
         } catch (AuthenticationException e) {
             throw new DynamicsCrmException(i18n.authenticationFailed(e.getMessage()));
         }
         metadata = service.getMetadata(client);
-        schema = service.getSchemaFromMetadata(metadata, configuration.getDataset().getEntitySet(), null, builderFactory);
+        schema = service
+                .getSchemaFromMetadata(metadata, configuration.getDataset().getEntitySet(), null, builderFactory);
         iterator = service.getEntitySetIterator(client, service.createQueryOptionConfig(schema, configuration));
     }
 

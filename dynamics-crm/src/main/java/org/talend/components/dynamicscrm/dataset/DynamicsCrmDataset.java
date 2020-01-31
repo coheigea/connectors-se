@@ -12,6 +12,8 @@
  */
 package org.talend.components.dynamicscrm.dataset;
 
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
+
 import java.io.Serializable;
 
 import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
@@ -24,8 +26,6 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
-
-import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 
 @Data
 @DataSet("DynamicsCrmDataset")

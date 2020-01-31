@@ -1,87 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
+    <parent>
+        <groupId>org.talend.components</groupId>
+        <artifactId>connectors-se</artifactId>
+        <version>1.6.0-SNAPSHOT</version>
+    </parent>
+
     <groupId>org.talend.components</groupId>
-    <artifactId>connectors-se</artifactId>
-    <version>1.6.0-SNAPSHOT</version>
-  </parent>
+    <artifactId>dynamics-crm</artifactId>
+    <packaging>jar</packaging>
 
-  <groupId>org.talend.components</groupId>
-  <artifactId>dynamics-crm</artifactId>
-  <packaging>jar</packaging>
+    <name>Components :: Microsoft Dynamics CRM</name>
+    <description>Microsoft Dynamics CRM components</description>
 
-  <name>Components :: Microsoft Dynamics CRM</name>
-  <description>Microsoft Dynamics CRM components</description>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!--
+        Set it to true if you want the documentation to be rendered as HTML and PDF
 
-    <!--
-    Set it to true if you want the documentation to be rendered as HTML and PDF
+        You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
+        -->
+        <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
 
-    You can also use it on the command line: -Dtalend.documentation.htmlAndPdf=true
-    -->
-    <talend.documentation.htmlAndPdf>false</talend.documentation.htmlAndPdf>
+        <!--
+        if you want to deploy into the studio you can use the related goal:
 
-    <!--
-    if you want to deploy into the studio you can use the related goal:
+        mvn package talend-component:deploy-in-studio -Dtalend.component.studioHome=/path/to/studio
 
-    mvn package talend-component:deploy-in-studio -Dtalend.component.studioHome=/path/to/studio
+        TIP: it is recommended to set this property into your settings.xml in an active by default profile.
+        -->
+        <talend.component.studioHome/>
+    </properties>
 
-    TIP: it is recommended to set this property into your settings.xml in an active by default profile.
-    -->
-    <talend.component.studioHome />
-  </properties>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.talend.libraries</groupId>
+            <artifactId>talend-mscrm</artifactId>
+            <version>3.4-20191224</version>
+        </dependency>
+    </dependencies>
 
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.12</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.talend.libraries</groupId>
-      <artifactId>talend-mscrm</artifactId>
-      <version>3.4-20191224</version>
-    </dependency>
-  </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
-        <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
-          <forceJavacCompilerUse>true</forceJavacCompilerUse>
-          <compilerId>javac</compilerId>
-          <fork>true</fork>
-          <compilerArgs>
-            <arg>-parameters</arg>
-          </compilerArgs>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.0.0-M3</version>
-        <configuration>
-          <trimStackTrace>false</trimStackTrace>
-          <runOrder>alphabetical</runOrder>
-        </configuration>
-      </plugin>
-    </plugins>
-    <extensions>
-      <extension>
-        <groupId>org.talend.sdk.component</groupId>
-        <artifactId>talend-component-maven-plugin</artifactId>
-        <version>1.1.15</version>
-      </extension>
-    </extensions>
-  </build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <forceJavacCompilerUse>true</forceJavacCompilerUse>
+                    <compilerId>javac</compilerId>
+                    <fork>true</fork>
+                    <compilerArgs>
+                        <arg>-parameters</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M3</version>
+                <configuration>
+                    <trimStackTrace>false</trimStackTrace>
+                    <runOrder>alphabetical</runOrder>
+                </configuration>
+            </plugin>
+        </plugins>
+        <extensions>
+            <extension>
+                <groupId>org.talend.sdk.component</groupId>
+                <artifactId>talend-component-maven-plugin</artifactId>
+                <version>1.1.15</version>
+            </extension>
+        </extensions>
+    </build>
 </project>

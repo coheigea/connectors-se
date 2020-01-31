@@ -27,7 +27,8 @@ import org.talend.sdk.component.runtime.input.Mapper;
 public class DynamicsCrmInputMapperTest {
 
     @ClassRule
-    public static final SimpleComponentRule COMPONENT_FACTORY = new SimpleComponentRule("org.talend.components.dynamicscrm");
+    public static final SimpleComponentRule COMPONENT_FACTORY =
+            new SimpleComponentRule("org.talend.components.dynamicscrm");
 
     @Test
     @Ignore("You need to complete this test")
@@ -42,7 +43,8 @@ public class DynamicsCrmInputMapperTest {
         final Mapper mapper = COMPONENT_FACTORY.createMapper(DynamicsCrmInputMapper.class, configuration);
 
         // Collect the source as a list
-        assertEquals(asList(/* TODO - give the expected data */), COMPONENT_FACTORY.collectAsList(Record.class, mapper));
+        assertEquals(asList(/* TODO - give the expected data */),
+                COMPONENT_FACTORY.collectAsList(Record.class, mapper));
     }
 
 }

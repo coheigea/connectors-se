@@ -12,6 +12,14 @@
  */
 package org.talend.components.dynamicscrm.service;
 
+import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.KO;
+import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.OK;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import javax.naming.AuthenticationException;
+
 import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.Service;
@@ -20,15 +28,7 @@ import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 
-import javax.naming.AuthenticationException;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 import lombok.extern.slf4j.Slf4j;
-
-import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.KO;
-import static org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status.OK;
 
 @Slf4j
 @Service
@@ -57,9 +57,13 @@ public class UIActionService {
     }
 
     @Suggestions(ACTION_ENTITY_SETS)
-    public SuggestionValues entitySetsList(@Option final DynamicsCrmConnection connection) throws AuthenticationException {
-        List<SuggestionValues.Item> items = service.getEntitySetNames(connection).stream()
-                .map(s -> new SuggestionValues.Item(s, s)).collect(Collectors.toList());
+    public SuggestionValues entitySetsList(@Option final DynamicsCrmConnection connection)
+            throws AuthenticationException {
+        List<SuggestionValues.Item> items = service
+                .getEntitySetNames(connection)
+                .stream()
+                .map(s -> new SuggestionValues.Item(s, s))
+                .collect(Collectors.toList());
         return new SuggestionValues(true, items);
     }
 }

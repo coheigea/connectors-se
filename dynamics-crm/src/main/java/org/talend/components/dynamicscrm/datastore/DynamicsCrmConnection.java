@@ -12,6 +12,11 @@
  */
 package org.talend.components.dynamicscrm.datastore;
 
+import static org.talend.components.dynamicscrm.service.UIActionService.ACTION_HEALTHCHECK;
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
+
+import java.io.Serializable;
+
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Checkable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
@@ -21,18 +26,14 @@ import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.configuration.ui.widget.Credential;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
-
 import lombok.Data;
-
-import static org.talend.components.dynamicscrm.service.UIActionService.ACTION_HEALTHCHECK;
-import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 
 @Data
 @Checkable(ACTION_HEALTHCHECK)
 @DataStore("DynamicsCrmConnection")
-@GridLayout({ @GridLayout.Row({ "appType" }), @GridLayout.Row({ "username", "password" }), @GridLayout.Row({ "serviceRootUrl" }),
-        @GridLayout.Row({ "clientId" }), @GridLayout.Row({ "clientSecret" }), @GridLayout.Row({ "authorizationEndpoint" }) })
+@GridLayout({ @GridLayout.Row({ "appType" }), @GridLayout.Row({ "username", "password" }),
+        @GridLayout.Row({ "serviceRootUrl" }), @GridLayout.Row({ "clientId" }), @GridLayout.Row({ "clientSecret" }),
+        @GridLayout.Row({ "authorizationEndpoint" }) })
 @GridLayout(names = ADVANCED, value = { @GridLayout.Row("timeout"), @GridLayout.Row("maxRetries") })
 @Documentation("Dynamics 365 CRM Connection class")
 public class DynamicsCrmConnection implements Serializable {

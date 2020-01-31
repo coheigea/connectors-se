@@ -12,11 +12,12 @@
  */
 package org.talend.components.dynamicscrm.output;
 
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
+
 import java.io.Serializable;
 import java.util.List;
 
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
-
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -24,12 +25,10 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
-
 @Data
 @GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "action" }), @GridLayout.Row({ "lookupMapping" }) })
-@GridLayout(names = ADVANCED, value = { @GridLayout.Row("dataset"), @GridLayout.Row("emptyStringToNull"),
-        @GridLayout.Row("ignoreNull") })
+@GridLayout(names = ADVANCED,
+        value = { @GridLayout.Row("dataset"), @GridLayout.Row("emptyStringToNull"), @GridLayout.Row("ignoreNull") })
 @Documentation("TODO fill the documentation for this configuration")
 public class DynamicsCrmOutputConfiguration implements Serializable {
 

@@ -13,7 +13,11 @@
 package org.talend.components.dynamicscrm.output;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -21,15 +25,12 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.naming.AuthenticationException;
 
-import org.apache.olingo.client.api.communication.request.retrieve.ODataEntitySetRequest;
 import org.apache.olingo.client.api.domain.ClientEntity;
-import org.apache.olingo.client.api.domain.ClientEntitySet;
-import org.apache.olingo.client.api.uri.QueryOption;
-import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.edm.Edm;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.talend.components.dynamicscrm.service.DynamicsCrmException;
+import org.talend.components.dynamicscrm.service.DynamicsCrmService;
 import org.talend.components.dynamicscrm.service.I18n;
 import org.talend.components.dynamicscrm.service.PropertyValidationData;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
@@ -43,13 +44,13 @@ import org.talend.sdk.component.api.processor.ElementListener;
 import org.talend.sdk.component.api.processor.Input;
 import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
-
-import org.talend.components.dynamicscrm.service.DynamicsCrmService;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 
-@Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
-@Icon(Icon.IconType.STAR) // you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding icons/filename.svg
+@Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a
+            // migrationHandler
+@Icon(Icon.IconType.STAR) // you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding
+                          // icons/filename.svg
                           // in resources
 @Processor(name = "DynamicsCrmOutput")
 @Documentation("TODO fill the documentation for this processor")
@@ -77,16 +78,21 @@ public class DynamicsCrmOutput implements Serializable {
     @PostConstruct
     public void init() {
         try {
-            client = service.createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet());
+            client = service
+                    .createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet());
         } catch (AuthenticationException e) {
             throw new DynamicsCrmException(i18n.authenticationFailed(e.getMessage()));
         }
         metadata = service.getMetadata(client);
         EdmEntitySet entitySet = metadata.getEntityContainer().getEntitySet(configuration.getDataset().getEntitySet());
-        if(fields == null || fields.isEmpty()) {
-            fields = service.getPropertiesValidationData(client, configuration.getDataset().getDatastore(), entitySet.getEntityType().getName()).stream().filter(getFilter())
-                            .map(PropertyValidationData::getName)
-                            .collect(Collectors.toList());
+        if (fields == null || fields.isEmpty()) {
+            fields = service
+                    .getPropertiesValidationData(client, configuration.getDataset().getDatastore(),
+                            entitySet.getEntityType().getName())
+                    .stream()
+                    .filter(getFilter())
+                    .map(PropertyValidationData::getName)
+                    .collect(Collectors.toList());
         }
     }
 
@@ -97,7 +103,9 @@ public class DynamicsCrmOutput implements Serializable {
         case UPDATE:
             return PropertyValidationData::isValidForUpdate;
         default:
-            return t -> { return true; };
+            return t -> {
+                return true;
+            };
         }
     }
 
@@ -108,21 +116,37 @@ public class DynamicsCrmOutput implements Serializable {
     @ElementListener
     public void onNext(@Input final Record defaultInput) {
         EdmEntitySet entitySet = metadata.getEntityContainer().getEntitySet(configuration.getDataset().getEntitySet());
-        final Optional<String> keyProp = entitySet.getEntityType().getKeyPropertyRefs().stream().map(r -> r.getProperty().getName()).findFirst();
+        final Optional<String> keyProp =
+                entitySet.getEntityType().getKeyPropertyRefs().stream().map(r -> r.getProperty().getName()).findFirst();
         Set<String> fieldsSet = new HashSet<>(fields);
 
         ClientEntity entity = client.newEntity();
-        Map<String, String> lookup = configuration.getLookupMapping().stream().collect(Collectors.toMap(l -> l.getInputColumn(), l -> l.getReferenceEntitySet()));
+        Map<String, String> lookup = configuration
+                .getLookupMapping()
+                .stream()
+                .collect(Collectors.toMap(l -> l.getInputColumn(), l -> l.getReferenceEntitySet()));
         List<Schema.Entry> entries = defaultInput.getSchema().getEntries();
         String keyValue = null;
-        for(Schema.Entry entry : entries) {
-            if(entry.getName().equals(keyProp.get())) {
+        for (Schema.Entry entry : entries) {
+            if (entry.getName().equals(keyProp.get())) {
                 keyValue = defaultInput.get(String.class, entry.getName());
                 continue;
-            } else if(fieldsSet.contains(entry.getName())) {
-                client.addEntityProperty(entity, entry.getName(), EdmPrimitiveTypeKind.valueOfFQN(entitySet.getEntityType().getProperty(entry.getName()).getType().getFullQualifiedName()), defaultInput.get(Object.class, entry.getName()));
-            } else if(fieldsSet.contains(client.extractNavigationLinkName(entry.getName()))) {
-                client.addEntityNavigationLink(entity, lookup.get(entry.getName()), client.extractNavigationLinkName(entry.getName()), defaultInput.getString(entry.getName()), configuration.isEmptyStringToNull(), configuration.isIgnoreNull());
+            } else if (fieldsSet.contains(entry.getName())) {
+                client
+                        .addEntityProperty(entity, entry.getName(),
+                                EdmPrimitiveTypeKind
+                                        .valueOfFQN(entitySet
+                                                .getEntityType()
+                                                .getProperty(entry.getName())
+                                                .getType()
+                                                .getFullQualifiedName()),
+                                defaultInput.get(Object.class, entry.getName()));
+            } else if (fieldsSet.contains(client.extractNavigationLinkName(entry.getName()))) {
+                client
+                        .addEntityNavigationLink(entity, lookup.get(entry.getName()),
+                                client.extractNavigationLinkName(entry.getName()),
+                                defaultInput.getString(entry.getName()), configuration.isEmptyStringToNull(),
+                                configuration.isIgnoreNull());
             }
 
         }

@@ -12,6 +12,9 @@
  */
 package org.talend.components.dynamicscrm.source;
 
+import java.net.URI;
+import java.util.Iterator;
+
 import org.apache.olingo.client.api.communication.request.retrieve.ODataEntitySetRequest;
 import org.apache.olingo.client.api.communication.response.ODataRetrieveResponse;
 import org.apache.olingo.client.api.domain.ClientEntity;
@@ -19,18 +22,15 @@ import org.apache.olingo.client.api.domain.ClientEntitySet;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.ms.crm.odata.QueryOptionConfig;
 
-import java.net.URI;
-import java.util.Iterator;
-
 public class DynamicsCrmQueryResultsIterator implements Iterator<ClientEntity> {
 
     private final DynamicsCRMClient client;
 
+    private final QueryOptionConfig queryOptionConfig;
+
     private URI nextPageUri;
 
     private Iterator<ClientEntity> entityIterator;
-
-    private final QueryOptionConfig queryOptionConfig;
 
     public DynamicsCrmQueryResultsIterator(DynamicsCRMClient client, QueryOptionConfig queryOptionConfig,
             ClientEntitySet clientEntitySet) {
