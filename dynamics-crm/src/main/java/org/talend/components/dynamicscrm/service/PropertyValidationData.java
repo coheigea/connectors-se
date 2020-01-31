@@ -10,27 +10,21 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
+
 package org.talend.components.dynamicscrm.service;
 
-import org.talend.sdk.component.api.internationalization.Internationalized;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Internationalized
-public interface I18n {
+@Data
+@AllArgsConstructor
+public class PropertyValidationData {
 
-    String authenticationFailed(String message);
+    private final String name;
 
-    String connectionFailed(String message);
+    private final boolean isValidForUpdate;
 
-    String healthCheckOk();
+    private final boolean isValidForCreate;
 
-    String entitySetRetrieveFailed(String message);
-
-    String metadataRetrieveFailed(String message);
-
-    String failedParsingBytesValue(String message);
-
-    String failedToDeleteEntity(String entityKey, String message);
-
-    String failedToInsertEntity(String message);
-
+    private final boolean isValidForRead;
 }

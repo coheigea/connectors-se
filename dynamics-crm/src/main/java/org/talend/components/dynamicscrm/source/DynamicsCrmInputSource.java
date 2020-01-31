@@ -56,6 +56,8 @@ public class DynamicsCrmInputSource implements Serializable {
 
     private Schema schema;
 
+    private Edm metadata;
+
     public DynamicsCrmInputSource(@Option("configuration") final DynamicsCrmInputMapperConfiguration configuration,
             final DynamicsCrmService service, final RecordBuilderFactory builderFactory) {
         this.configuration = configuration;
@@ -70,7 +72,8 @@ public class DynamicsCrmInputSource implements Serializable {
         } catch (AuthenticationException e) {
             throw new DynamicsCrmException(i18n.authenticationFailed(e.getMessage()));
         }
-        schema = service.getSchemaForEntitySet(client, configuration.getDataset().getEntitySet(), null, builderFactory);
+        metadata = service.getMetadata(client);
+        schema = service.getSchemaFromMetadata(metadata, configuration.getDataset().getEntitySet(), null, builderFactory);
         iterator = service.getEntitySetIterator(client, service.createQueryOptionConfig(schema, configuration));
     }
 

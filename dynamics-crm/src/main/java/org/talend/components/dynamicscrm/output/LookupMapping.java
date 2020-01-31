@@ -10,11 +10,7 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.dynamicscrm.source;
-
-import java.io.Serializable;
-
-import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
+package org.talend.components.dynamicscrm.output;
 
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
@@ -22,23 +18,17 @@ import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
-import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
-
 @Data
-@GridLayout({
-        // the generated layout put one configuration entry per line,
-        // customize it as much as needed
-        @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "filter" }) })
-@GridLayout(names = ADVANCED, value = { @GridLayout.Row("dataset") })
+@GridLayout({ @GridLayout.Row({ "inputColumn", "referenceEntitySet" }) })
 @Documentation("TODO fill the documentation for this configuration")
-public class DynamicsCrmInputMapperConfiguration implements Serializable {
+public class LookupMapping {
 
     @Option
-    @Documentation("TODO fill the documentation for this parameter")
-    private DynamicsCrmDataset dataset;
+    @Documentation("")
+    private String inputColumn;
 
     @Option
-    @Documentation("Filter")
-    private String filter;
+    @Documentation("")
+    private String referenceEntitySet;
 
 }

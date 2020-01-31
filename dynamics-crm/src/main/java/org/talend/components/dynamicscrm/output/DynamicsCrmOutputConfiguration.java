@@ -13,14 +13,23 @@
 package org.talend.components.dynamicscrm.output;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
 
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
-@GridLayout({ @GridLayout.Row({ "dataset" }) })
+import lombok.Data;
+
+import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
+
+@Data
+@GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "action" }), @GridLayout.Row({ "lookupMapping" }) })
+@GridLayout(names = ADVANCED, value = { @GridLayout.Row("dataset"), @GridLayout.Row("emptyStringToNull"),
+        @GridLayout.Row("ignoreNull") })
 @Documentation("TODO fill the documentation for this configuration")
 public class DynamicsCrmOutputConfiguration implements Serializable {
 
@@ -28,12 +37,28 @@ public class DynamicsCrmOutputConfiguration implements Serializable {
     @Documentation("TODO fill the documentation for this parameter")
     private DynamicsCrmDataset dataset;
 
-    public DynamicsCrmDataset getDataset() {
-        return dataset;
-    }
+    @Option
+    @Documentation("")
+    private List<LookupMapping> lookupMapping;
 
-    public DynamicsCrmOutputConfiguration setDataset(DynamicsCrmDataset dataset) {
-        this.dataset = dataset;
-        return this;
+    @Option
+    @Required
+    @Documentation("")
+    private Action action = Action.INSERT;
+
+    @Option
+    @Required
+    @Documentation("")
+    private boolean ignoreNull;
+
+    @Option
+    @Required
+    @Documentation("")
+    private boolean emptyStringToNull;
+
+    public enum Action {
+        INSERT,
+        UPDATE,
+        DELETE;
     }
 }

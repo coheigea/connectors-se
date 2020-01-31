@@ -12,12 +12,11 @@
  */
 package org.talend.components.dynamicscrm.service;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.olingo.client.api.communication.request.retrieve.EdmMetadataRequest;
 import org.apache.olingo.client.api.communication.request.retrieve.ODataEntitySetRequest;
 import org.apache.olingo.client.api.communication.response.ODataRetrieveResponse;
 import org.apache.olingo.client.api.domain.*;
+import org.apache.olingo.client.api.uri.URIBuilder;
 import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.edm.*;
 import org.apache.olingo.commons.api.edm.constants.EdmTypeKind;
@@ -114,18 +113,12 @@ public class DynamicsCrmService {
     public Schema getSchemaForEntitySet(DynamicsCRMClient client, String entitySetName, List<String> columnNames,
             RecordBuilderFactory builderFactory) {
         Edm metadata = getMetadata(client);
-        EdmEntityContainer container = metadata.getEntityContainer();
-        EdmEntitySet entitySet = container.getEntitySet(entitySetName);
-        EdmEntityType type = entitySet.getEntityType();
-        return parseSchema(metadata, type, columnNames, builderFactory);
+        return parseSchema(metadata, entitySetName, columnNames, builderFactory);
     }
 
     public Schema getSchemaFromMetadata(Edm metadata, String entitySetName, List<String> columnNames,
             RecordBuilderFactory builderFactory) {
-        EdmEntityContainer container = metadata.getEntityContainer();
-        EdmEntitySet entitySet = container.getEntitySet(entitySetName);
-        EdmEntityType type = entitySet.getEntityType();
-        return parseSchema(metadata, type, columnNames, builderFactory);
+        return parseSchema(metadata, entitySetName, columnNames, builderFactory);
     }
 
     public Edm getMetadata(DynamicsCRMClient client) {
@@ -140,7 +133,10 @@ public class DynamicsCrmService {
         return metadata;
     }
 
-    private Schema parseSchema(Edm edm, EdmStructuredType type, List<String> columnNames, RecordBuilderFactory builderFactory) {
+    private Schema parseSchema(Edm edm, String entitySetName, List<String> columnNames, RecordBuilderFactory builderFactory) {
+        EdmEntityContainer container = edm.getEntityContainer();
+        EdmEntitySet entitySet = container.getEntitySet(entitySetName);
+        EdmEntityType type = entitySet.getEntityType();
         if (columnNames == null || columnNames.isEmpty()) {
             columnNames = type.getPropertyNames();
         }
@@ -163,9 +159,6 @@ public class DynamicsCrmService {
     }
 
     private Schema getSubSchema(Edm edm, EdmProperty edmElement, RecordBuilderFactory builderFactory) {
-        if (edmElement.getName().equalsIgnoreCase("_transactioncurrencyid_value")) {
-            System.out.println(edmElement.getType().getKind());
-        }
         if (edmElement.getType().getKind() != EdmTypeKind.COMPLEX) {
             return builderFactory.newSchemaBuilder(getElementType(edmElement.getType())).build();
         }
@@ -292,12 +285,12 @@ public class DynamicsCrmService {
     }
 
     private Object getValue(ClientValue value, Schema.Type type, Schema elementSchema, RecordBuilderFactory builderFactory) {
-        if (value.isEnum()) {
-            return value.asEnum().getValue();
-        }
-
         if (value == null || (value.isPrimitive() && value.asPrimitive().toValue() == null)) {
             return null;
+        }
+
+        if (value.isEnum()) {
+            return value.asEnum().getValue();
         }
         switch (type) {
         case ARRAY:
@@ -343,6 +336,22 @@ public class DynamicsCrmService {
         default:
             return value.toString();
         }
+    }
+
+    protected URIBuilder createUriBuilderForValidProps(DynamicsCRMClient client, DynamicsCrmConnection datastore, String entitySetName) {
+        return client.getClient().newURIBuilder(datastore.getServiceRootUrl()).appendEntitySetSegment("EntityDefinitions")
+                                   .appendKeySegment(Collections.singletonMap("LogicalName", entitySetName))
+                                   .appendEntitySetSegment("Attributes").select("LogicalName", "IsValidForRead", "IsValidForUpdate", "IsValidForCreate");
+    }
+
+    public List<PropertyValidationData> getPropertiesValidationData(DynamicsCRMClient client, DynamicsCrmConnection datastore, String entitySetName) {
+        ODataEntitySetRequest<ClientEntitySet> validationDataRequest = client.createRequest(createUriBuilderForValidProps(client, datastore, entitySetName));
+        ODataRetrieveResponse<ClientEntitySet> validationDataResponse = validationDataRequest.execute();
+        ClientEntitySet validationDataSet = validationDataResponse.getBody();
+        List<PropertyValidationData> validationData = validationDataSet.getEntities().stream()
+                .map(e -> new PropertyValidationData((String)e.getProperty("LogicalName").getPrimitiveValue().toValue(), (boolean)e.getProperty("IsValidForCreate").getPrimitiveValue().toValue(), (boolean)e.getProperty("IsValidForUpdate").getPrimitiveValue().toValue(), (boolean)e.getProperty("IsValidForRead").getPrimitiveValue().toValue()))
+                .collect(Collectors.toList());
+        return validationData;
     }
 
 }

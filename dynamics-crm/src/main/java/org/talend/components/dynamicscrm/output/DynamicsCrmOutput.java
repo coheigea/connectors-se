@@ -13,10 +13,26 @@
 package org.talend.components.dynamicscrm.output;
 
 import java.io.Serializable;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.naming.AuthenticationException;
 
+import org.apache.olingo.client.api.communication.request.retrieve.ODataEntitySetRequest;
+import org.apache.olingo.client.api.domain.ClientEntity;
+import org.apache.olingo.client.api.domain.ClientEntitySet;
+import org.apache.olingo.client.api.uri.QueryOption;
+import org.apache.olingo.client.api.uri.URIBuilder;
+import org.apache.olingo.commons.api.edm.Edm;
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
+import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
+import org.talend.components.dynamicscrm.service.DynamicsCrmException;
+import org.talend.components.dynamicscrm.service.I18n;
+import org.talend.components.dynamicscrm.service.PropertyValidationData;
+import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -29,6 +45,8 @@ import org.talend.sdk.component.api.processor.Processor;
 import org.talend.sdk.component.api.record.Record;
 
 import org.talend.components.dynamicscrm.service.DynamicsCrmService;
+import org.talend.sdk.component.api.record.Schema;
+import org.talend.sdk.component.api.service.Service;
 
 @Version(1) // default version is 1, if some configuration changes happen between 2 versions you can add a migrationHandler
 @Icon(Icon.IconType.STAR) // you can use a custom one using @Icon(value=CUSTOM, custom="filename") and adding icons/filename.svg
@@ -41,6 +59,15 @@ public class DynamicsCrmOutput implements Serializable {
 
     private final DynamicsCrmService service;
 
+    private DynamicsCRMClient client;
+
+    private Edm metadata;
+
+    @Service
+    private I18n i18n;
+
+    private List<String> fields;
+
     public DynamicsCrmOutput(@Option("configuration") final DynamicsCrmOutputConfiguration configuration,
             final DynamicsCrmService service) {
         this.configuration = configuration;
@@ -49,23 +76,56 @@ public class DynamicsCrmOutput implements Serializable {
 
     @PostConstruct
     public void init() {
-        // this method will be executed once for the whole component execution,
-        // this is where you can establish a connection for instance
-        // Note: if you don't need it you can delete it
+        try {
+            client = service.createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet());
+        } catch (AuthenticationException e) {
+            throw new DynamicsCrmException(i18n.authenticationFailed(e.getMessage()));
+        }
+        metadata = service.getMetadata(client);
+        EdmEntitySet entitySet = metadata.getEntityContainer().getEntitySet(configuration.getDataset().getEntitySet());
+        if(fields == null || fields.isEmpty()) {
+            fields = service.getPropertiesValidationData(client, configuration.getDataset().getDatastore(), entitySet.getEntityType().getName()).stream().filter(getFilter())
+                            .map(PropertyValidationData::getName)
+                            .collect(Collectors.toList());
+        }
+    }
+
+    private Predicate<? super PropertyValidationData> getFilter() {
+        switch (configuration.getAction()) {
+        case INSERT:
+            return PropertyValidationData::isValidForCreate;
+        case UPDATE:
+            return PropertyValidationData::isValidForUpdate;
+        default:
+            return t -> { return true; };
+        }
     }
 
     @BeforeGroup
     public void beforeGroup() {
-        // if the environment supports chunking this method is called at the beginning if a chunk
-        // it can be used to start a local transaction specific to the backend you use
-        // Note: if you don't need it you can delete it
     }
 
     @ElementListener
     public void onNext(@Input final Record defaultInput) {
-        // this is the method allowing you to handle the input(s) and emit the output(s)
-        // after some custom logic you put here, to send a value to next element you can use an
-        // output parameter and call emit(value).
+        EdmEntitySet entitySet = metadata.getEntityContainer().getEntitySet(configuration.getDataset().getEntitySet());
+        final Optional<String> keyProp = entitySet.getEntityType().getKeyPropertyRefs().stream().map(r -> r.getProperty().getName()).findFirst();
+        Set<String> fieldsSet = new HashSet<>(fields);
+
+        ClientEntity entity = client.newEntity();
+        Map<String, String> lookup = configuration.getLookupMapping().stream().collect(Collectors.toMap(l -> l.getInputColumn(), l -> l.getReferenceEntitySet()));
+        List<Schema.Entry> entries = defaultInput.getSchema().getEntries();
+        String keyValue = null;
+        for(Schema.Entry entry : entries) {
+            if(entry.getName().equals(keyProp.get())) {
+                keyValue = defaultInput.get(String.class, entry.getName());
+                continue;
+            } else if(fieldsSet.contains(entry.getName())) {
+                client.addEntityProperty(entity, entry.getName(), EdmPrimitiveTypeKind.valueOfFQN(entitySet.getEntityType().getProperty(entry.getName()).getType().getFullQualifiedName()), defaultInput.get(Object.class, entry.getName()));
+            } else if(fieldsSet.contains(client.extractNavigationLinkName(entry.getName()))) {
+                client.addEntityNavigationLink(entity, lookup.get(entry.getName()), client.extractNavigationLinkName(entry.getName()), defaultInput.getString(entry.getName()), configuration.isEmptyStringToNull(), configuration.isIgnoreNull());
+            }
+
+        }
     }
 
     @AfterGroup
