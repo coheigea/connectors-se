@@ -96,7 +96,6 @@ public class NetSuiteInputMapper implements Serializable {
         List<NetSuiteInputMapper> res = new LinkedList<>();
         for (int i = 0; i < threads; i++) {
             NetSuiteInputMapper mapper = new NetSuiteInputMapper(configuration, recordBuilderFactory, i18n);
-            // mapper.setRs(rs);
             mapper.setPageSelection(new PageSelection(pageSelection.getSearchId(),
                     (int) (bundles * i) + pageSelection.getFirstPage(), (int) bundles));
             res.add(mapper);
@@ -118,8 +117,9 @@ public class NetSuiteInputMapper implements Serializable {
             service = new NetSuiteService(recordBuilderFactory, i18n);
         }
         NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet());
+        clientService.setBodyFieldsOnly(configuration.isBodyFieldsOnly());
         String recordTypeName = configuration.getDataSet().getRecordType();
         SearchResultSet<?> srs = new SearchResultSet<>(clientService, recordTypeName, pageSelection);
-        return new NetSuiteInputSource(configuration, recordBuilderFactory, i18n, srs);
+        return new NetSuiteInputSource(configuration, recordBuilderFactory, i18n, srs, service);
     }
 }

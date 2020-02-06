@@ -26,6 +26,7 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
 import javax.annotation.PostConstruct;
+
 import java.io.Serializable;
 
 @Documentation("TODO fill the documentation for this source")
@@ -41,19 +42,22 @@ public class NetSuiteInputSource implements Serializable {
 
     private NsObjectInputTransducer transducer;
 
+    private NetSuiteService netSuiteService;
+
     public NetSuiteInputSource(@Option("configuration") final NetSuiteInputProperties configuration,
-            final RecordBuilderFactory recordBuilderFactory, final Messages i18n, SearchResultSet<?> rs) {
+            final RecordBuilderFactory recordBuilderFactory, final Messages i18n, SearchResultSet<?> rs,
+            NetSuiteService netSuiteService) {
         this.configuration = configuration;
         this.recordBuilderFactory = recordBuilderFactory;
         this.i18n = i18n;
         this.rs = rs;
+        this.netSuiteService = netSuiteService;
     }
 
     @PostConstruct
     public void init() {
-        NetSuiteService service = new NetSuiteService(recordBuilderFactory, i18n);
-        NetSuiteClientService<?> clientService = service.getClientService(configuration.getDataSet());
-        Schema runtimeSchema = service.getSchema(configuration.getDataSet(), null);
+        NetSuiteClientService<?> clientService = netSuiteService.getClientService(configuration.getDataSet());
+        Schema runtimeSchema = netSuiteService.getSchema(configuration.getDataSet(), null);
         RecordTypeInfo recordTypeInfo = rs.getRecordTypeDesc();
         transducer = new NsObjectInputTransducer(clientService, i18n, recordBuilderFactory, runtimeSchema,
                 recordTypeInfo.getName(), configuration.getDataSet().getDataStore().getApiVersion().getVersion());
