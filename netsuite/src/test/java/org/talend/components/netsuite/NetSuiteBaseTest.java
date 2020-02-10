@@ -61,7 +61,7 @@ public abstract class NetSuiteBaseTest {
 
     protected static NetSuiteDataStore dataStore;
 
-    protected static NetSuiteService service;
+    protected static NetSuiteService netSuiteService;
 
     protected static Messages messages;
 
@@ -76,6 +76,7 @@ public abstract class NetSuiteBaseTest {
 
         messages = COMPONENT.findService(Messages.class);
         factory = COMPONENT.findService(RecordBuilderFactory.class);
+        netSuiteService = COMPONENT.findService(NetSuiteService.class);
 
         final MavenDecrypter decrypter = new MavenDecrypter();
         Server consumer = decrypter.find("netsuite.consumer");
@@ -88,7 +89,6 @@ public abstract class NetSuiteBaseTest {
         dataStore.setConsumerSecret(consumer.getPassword());
         dataStore.setTokenId(token.getUsername());
         dataStore.setTokenSecret(token.getPassword());
-        service = new NetSuiteService(factory, messages);
     }
 
     private static void readPropertiesFile() throws IOException {

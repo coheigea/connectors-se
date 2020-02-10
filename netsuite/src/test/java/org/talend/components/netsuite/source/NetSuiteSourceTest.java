@@ -26,7 +26,6 @@ import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
-import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.components.netsuite.test.TestCollector;
 import org.talend.components.netsuite.utils.SampleData;
 import org.talend.sdk.component.api.record.Record;
@@ -144,7 +143,6 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         outputProperties.setAction(NetSuiteOutputProperties.DataAction.ADD);
         List<String> schemaFields = Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId",
                 "ExternalId");
-        NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
         NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
                 netSuiteService.getSchema(dataSet, schemaFields), "Account", "2019.2");

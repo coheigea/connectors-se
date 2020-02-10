@@ -61,7 +61,6 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         outputProperties.setAction(DataAction.ADD);
         List<String> schemaFields = Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId",
                 "ExternalId");
-        NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
         NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
                 netSuiteService.getSchema(dataSet, schemaFields), "Account", "2019.2");
@@ -116,7 +115,6 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         dataSet.setRecordType("customrecordqacomp_custom_recordtype");
         List<String> schemaFields = Arrays.asList("Name", "Custrecord79", "Custrecord80", "InternalId", "ExternalId");
         outputProperties.setUseNativeUpsert(isNativeUpsert);
-        NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
         NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
                 netSuiteService.getSchema(dataSet, schemaFields), "customrecordqacomp_custom_recordtype", "2019.2");
@@ -170,7 +168,6 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         List<String> schemaFields = Arrays.asList("Custbody_clarivates_custom", "Custbody111", "Subsidiary", "ItemList",
                 "Message", "CustomForm", "Entity", "ExchangeRate", "SupervisorApproval", "InternalId", "ExternalId");
 
-        NetSuiteService netSuiteService = new NetSuiteService(factory, messages);
         NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
         NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
                 netSuiteService.getSchema(dataSet, schemaFields), "PurchaseOrder", "2019.2");

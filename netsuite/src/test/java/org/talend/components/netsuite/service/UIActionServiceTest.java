@@ -27,7 +27,6 @@ import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
-import org.talend.components.netsuite.runtime.NetSuiteDatasetRuntime;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorName;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorType;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorTypeDesc;
@@ -120,7 +119,7 @@ class UIActionServiceTest extends NetSuiteBaseTest {
     void testLoadFields() {
         log.info("Test 'load fields' start ");
         List<String> expectedList = Arrays.stream(AccountSearchBasic.class.getDeclaredFields()).map(Field::getName)
-                .filter(NetSuiteDatasetRuntime.FILTER_EXTRA_SEARCH_FIELDS).sorted().collect(toList());
+                .filter(NetSuiteService.FILTER_EXTRA_SEARCH_FIELDS).sorted().collect(toList());
         NetSuiteDataSet dataSet = createDefaultDataSet();
         dataSet.setRecordType("Account");
         SuggestionValues values = uiActionService.loadFields(dataSet);
@@ -132,7 +131,7 @@ class UIActionServiceTest extends NetSuiteBaseTest {
     void testLoadCustomSearchFields() {
         log.info("Test 'load custom search fields' start ");
         List<String> expectedList = Arrays.stream(CustomRecordSearchBasic.class.getDeclaredFields()).map(Field::getName)
-                .filter(NetSuiteDatasetRuntime.FILTER_EXTRA_SEARCH_FIELDS).collect(toList());
+                .filter(NetSuiteService.FILTER_EXTRA_SEARCH_FIELDS).collect(toList());
         expectedList.add("custrecordtemp_value_for_search");
         Collections.sort(expectedList);
 
@@ -149,7 +148,7 @@ class UIActionServiceTest extends NetSuiteBaseTest {
     void testLoadTransactionSearchFields() {
         log.info("Test 'load transaction search fields' start ");
         List<String> expectedList = Arrays.stream(TransactionSearchBasic.class.getDeclaredFields()).map(Field::getName)
-                .filter(NetSuiteDatasetRuntime.FILTER_EXTRA_SEARCH_FIELDS).sorted().collect(toList());
+                .filter(NetSuiteService.FILTER_EXTRA_SEARCH_FIELDS).sorted().collect(toList());
 
         NetSuiteDataSet dataSet = createDefaultDataSet();
         dataSet.setRecordType("PurchaseOrder");

@@ -62,6 +62,8 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     private Messages i18n;
 
+    private final NetSuiteService netSuiteService;
+
     private transient NetSuiteClientService<?> clientService;
 
     private transient NsObjectOutputTransducer transducer;
@@ -71,19 +73,21 @@ public class NetSuiteOutputProcessor implements Serializable {
     private transient List<Record> inputRecordList;
 
     public NetSuiteOutputProcessor(@Option("configuration") final NetSuiteOutputProperties configuration,
-            RecordBuilderFactory recordBuilderFactory, Messages i18n) {
+            RecordBuilderFactory recordBuilderFactory, Messages i18n, NetSuiteService netSuiteService) {
         this.recordBuilderFactory = recordBuilderFactory;
         this.configuration = configuration;
         this.i18n = i18n;
+        this.netSuiteService = netSuiteService;
     }
 
     @PostConstruct
     public void init() {
-        NetSuiteService service = new NetSuiteService(recordBuilderFactory, i18n);
-        clientService = service.getClientService(configuration.getDataSet());
-        Schema schema = service.getSchema(configuration.getDataSet(), null);
+        clientService = netSuiteService.getClientService(configuration.getDataSet());
+        Schema schema = netSuiteService.getSchema(configuration.getDataSet(), null);
         referenceDataActionFunction();
-        instantiateTransducer(schema);
+        transducer = new NsObjectOutputTransducer(clientService, i18n, configuration.getDataSet().getRecordType(), schema,
+                configuration.getDataSet().getDataStore().getApiVersion().getVersion());
+        transducer.setReference(configuration.getAction() == DataAction.DELETE);
         inputRecordList = new ArrayList<>();
     }
 
@@ -103,13 +107,6 @@ public class NetSuiteOutputProcessor implements Serializable {
             dataActionFunction = configuration.isUseNativeUpsert() ? clientService::upsertList : this::customUpsert;
             break;
         }
-    }
-
-    private void instantiateTransducer(Schema schema) {
-        transducer = new NsObjectOutputTransducer(clientService, i18n, configuration.getDataSet().getRecordType(), schema,
-                configuration.getDataSet().getDataStore().getApiVersion().getVersion());
-        transducer.setMetaDataSource(clientService.getMetaDataSource());
-        transducer.setReference(configuration.getAction() == DataAction.DELETE);
     }
 
     @BeforeGroup

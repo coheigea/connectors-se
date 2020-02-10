@@ -42,17 +42,10 @@ public class UIActionService {
     public static final String LOAD_OPERATORS = "loadOperators";
 
     @Service
-    private RecordBuilderFactory recordBuilderFactory;
-
-    @Service
     private Messages i18n;
 
+    @Service
     private NetSuiteService service;
-
-    @PostConstruct
-    public void init() {
-        service = new NetSuiteService(recordBuilderFactory, i18n);
-    }
 
     @HealthCheck(HEALTH_CHECK)
     public HealthCheckStatus validateConnection(@Option final NetSuiteDataStore dataStore) {

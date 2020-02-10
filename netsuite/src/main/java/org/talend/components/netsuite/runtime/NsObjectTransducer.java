@@ -82,7 +82,7 @@ public abstract class NsObjectTransducer {
     protected Messages i18n;
 
     /** Source of meta data used. */
-    protected MetaDataSource metaDataSource;
+    protected final MetaDataSource metaDataSource;
 
     /** XML data type factory used. */
     protected final DatatypeFactory datatypeFactory;
@@ -119,7 +119,7 @@ public abstract class NsObjectTransducer {
         // Register JAXB annotation module to perform mapping of data model objects to/from JSON.
         objectMapper.registerModule(new JaxbAnnotationModule());
 
-        setMetaDataSource(clientService.getMetaDataSource());
+        metaDataSource = clientService.getMetaDataSource();
     }
 
     /**
