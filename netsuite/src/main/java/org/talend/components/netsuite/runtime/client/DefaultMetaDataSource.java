@@ -99,7 +99,7 @@ public class DefaultMetaDataSource implements MetaDataSource {
 
     private boolean isNotCustomOrNullFieldList(FieldDesc fieldDesc) {
         String fieldName = fieldDesc.getName();
-        return !fieldName.equals(NsObjectTransducer.CUSTOM_FIELD) && !fieldName.equals(NsObjectTransducer.NULL_FIELD_LIST);
+        return !fieldName.equals(NsObjectTransducer.CUSTOM_FIELD_LIST) && !fieldName.equals(NsObjectTransducer.NULL_FIELD_LIST);
     }
 
     @Override
