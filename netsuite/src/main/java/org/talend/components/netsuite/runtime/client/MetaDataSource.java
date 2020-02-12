@@ -12,21 +12,21 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
 
-import java.util.Collection;
-import java.util.List;
-
 /**
  * Provides information about NetSuite data model.
  */
 public interface MetaDataSource {
 
-    void setCustomizationEnabled(boolean customizationEnabled);
+    // void setCustomizationEnabled(boolean customizationEnabled);
 
     /**
      * Return meta data about basic (standard) data model, without customizations.
@@ -40,7 +40,7 @@ public interface MetaDataSource {
      *
      * @return list of record types
      */
-    Collection<RecordTypeInfo> getRecordTypes();
+    Collection<RecordTypeInfo> getRecordTypes(boolean customizationEnabled);
 
     /**
      * Return type descriptor for a given model object type's name
@@ -48,7 +48,7 @@ public interface MetaDataSource {
      * @param typeName model object type's name
      * @return type descriptor
      */
-    TypeDesc getTypeInfo(String typeName);
+    TypeDesc getTypeInfo(String typeName, boolean customizationEnabled);
 
     /**
      * Return information about a record type by it's name.
@@ -56,7 +56,7 @@ public interface MetaDataSource {
      * @param typeName name of record type
      * @return record type information
      */
-    RecordTypeInfo getRecordType(String typeName);
+    RecordTypeInfo getRecordType(String typeName, boolean customizationEnabled);
 
     /**
      * Return search record type descriptor by a record type's name.
@@ -64,7 +64,7 @@ public interface MetaDataSource {
      * @param recordTypeName name of record type
      * @return search record type descriptor
      */
-    SearchRecordTypeDesc getSearchRecordType(String recordTypeName);
+    SearchRecordTypeDesc getSearchRecordType(String recordTypeName, boolean customizationEnabled);
 
     /**
      * Return search record type descriptor by a record type descriptor.
@@ -80,5 +80,5 @@ public interface MetaDataSource {
      * @param recordTypeName name of record type
      * @return search record fields list
      */
-    List<String> getSearchRecordCustomFields(String recordTypeName);
+    List<String> getSearchRecordCustomFields(String recordTypeName, boolean customizationEnabled);
 }

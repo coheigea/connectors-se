@@ -12,11 +12,17 @@
  */
 package org.talend.components.netsuite.source;
 
+import java.io.Serializable;
+
+import javax.annotation.PostConstruct;
+
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.search.SearchResultSet;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
+import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.service.Messages;
+import org.talend.components.netsuite.service.NetSuiteClientConnectionService;
 import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
@@ -24,10 +30,6 @@ import org.talend.sdk.component.api.meta.Documentation;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
-
-import javax.annotation.PostConstruct;
-
-import java.io.Serializable;
 
 @Documentation("TODO fill the documentation for this source")
 public class NetSuiteInputSource implements Serializable {
@@ -44,23 +46,29 @@ public class NetSuiteInputSource implements Serializable {
 
     private NetSuiteService netSuiteService;
 
+    private NetSuiteClientConnectionService netSuiteClientConnectionService;
+
     public NetSuiteInputSource(@Option("configuration") final NetSuiteInputProperties configuration,
             final RecordBuilderFactory recordBuilderFactory, final Messages i18n, SearchResultSet<?> rs,
-            NetSuiteService netSuiteService) {
+            NetSuiteService netSuiteService, NetSuiteClientConnectionService netSuiteClientConnectionService) {
         this.configuration = configuration;
         this.recordBuilderFactory = recordBuilderFactory;
         this.i18n = i18n;
         this.rs = rs;
         this.netSuiteService = netSuiteService;
+        this.netSuiteClientConnectionService = netSuiteClientConnectionService;
     }
 
     @PostConstruct
     public void init() {
-        NetSuiteClientService<?> clientService = netSuiteService.getClientService(configuration.getDataSet());
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService
+                .getClientService(configuration.getDataSet().getDataStore());
         Schema runtimeSchema = netSuiteService.getSchema(configuration.getDataSet(), null);
         RecordTypeInfo recordTypeInfo = rs.getRecordTypeDesc();
-        transducer = new NsObjectInputTransducer(clientService, i18n, recordBuilderFactory, runtimeSchema,
-                recordTypeInfo.getName(), configuration.getDataSet().getDataStore().getApiVersion().getVersion());
+        TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo(recordTypeInfo.getName(),
+                configuration.getDataSet().isEnableCustomization());
+        transducer = new NsObjectInputTransducer(clientService.getBasicMetaData(), i18n, recordBuilderFactory, runtimeSchema,
+                typeDesc, configuration.getDataSet().getDataStore().getApiVersion().getVersion());
     }
 
     @Producer

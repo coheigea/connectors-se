@@ -12,6 +12,10 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
@@ -22,10 +26,6 @@ import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 import org.talend.components.netsuite.runtime.model.TypeDesc;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 
@@ -41,7 +41,7 @@ public class DefaultMetaDataSource implements MetaDataSource {
 
     protected NetSuiteClientService<?> clientService;
 
-    protected boolean customizationEnabled = true;
+    // protected boolean customizationEnabled = true;
 
     protected CustomMetaDataSource customMetaDataSource;
 
@@ -51,10 +51,10 @@ public class DefaultMetaDataSource implements MetaDataSource {
         customMetaDataSource = clientService.createDefaultCustomMetaDataSource();
     }
 
-    @Override
-    public void setCustomizationEnabled(boolean customizationEnabled) {
-        this.customizationEnabled = customizationEnabled;
-    }
+    // @Override
+    // public void setCustomizationEnabled(boolean customizationEnabled) {
+    // this.customizationEnabled = customizationEnabled;
+    // }
 
     @Override
     public BasicMetaData getBasicMetaData() {
@@ -62,7 +62,7 @@ public class DefaultMetaDataSource implements MetaDataSource {
     }
 
     @Override
-    public Collection<RecordTypeInfo> getRecordTypes() {
+    public Collection<RecordTypeInfo> getRecordTypes(boolean customizationEnabled) {
 
         List<RecordTypeInfo> recordTypes = clientService.getBasicMetaData().getRecordTypes().stream().map(RecordTypeInfo::new)
                 .collect(toList());
@@ -73,11 +73,11 @@ public class DefaultMetaDataSource implements MetaDataSource {
     }
 
     @Override
-    public TypeDesc getTypeInfo(final String typeName) {
+    public TypeDesc getTypeInfo(final String typeName, boolean customizationEnabled) {
         TypeDesc baseTypeDesc;
         String targetTypeName = null;
 
-        RecordTypeInfo recordTypeInfo = getRecordType(typeName);
+        RecordTypeInfo recordTypeInfo = getRecordType(typeName, customizationEnabled);
         if (recordTypeInfo instanceof CustomRecordTypeInfo) {
             CustomRecordTypeInfo customRecordTypeInfo = (CustomRecordTypeInfo) recordTypeInfo;
             baseTypeDesc = clientService.getBasicMetaData().getTypeInfo(customRecordTypeInfo.getRecordType().getTypeName());
@@ -103,7 +103,7 @@ public class DefaultMetaDataSource implements MetaDataSource {
     }
 
     @Override
-    public RecordTypeInfo getRecordType(String typeName) {
+    public RecordTypeInfo getRecordType(String typeName, boolean customizationEnabled) {
         RecordTypeDesc recordType = clientService.getBasicMetaData().getRecordType(typeName);
         if (recordType != null) {
             return new RecordTypeInfo(recordType);
@@ -112,12 +112,12 @@ public class DefaultMetaDataSource implements MetaDataSource {
     }
 
     @Override
-    public SearchRecordTypeDesc getSearchRecordType(String recordTypeName) {
+    public SearchRecordTypeDesc getSearchRecordType(String recordTypeName, boolean customizationEnabled) {
         SearchRecordTypeDesc searchRecordType = clientService.getBasicMetaData().getSearchRecordType(recordTypeName);
         if (searchRecordType != null) {
             return searchRecordType;
         }
-        return Optional.ofNullable(getRecordType(recordTypeName)).map(RecordTypeInfo::getRecordType)
+        return Optional.ofNullable(getRecordType(recordTypeName, customizationEnabled)).map(RecordTypeInfo::getRecordType)
                 .map(this::getSearchRecordType).orElse(null);
     }
 
@@ -136,8 +136,8 @@ public class DefaultMetaDataSource implements MetaDataSource {
     }
 
     @Override
-    public List<String> getSearchRecordCustomFields(String recordTypeName) {
-        return customMetaDataSource.getCustomFields(getRecordType(recordTypeName)).values().stream()
+    public List<String> getSearchRecordCustomFields(String recordTypeName, boolean customizationEnabled) {
+        return customMetaDataSource.getCustomFields(getRecordType(recordTypeName, customizationEnabled)).values().stream()
                 .filter(CustomFieldDesc::isGlobalSearch).map(CustomFieldDesc::getName).collect(toList());
     }
 }

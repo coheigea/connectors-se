@@ -12,6 +12,11 @@
  */
 package org.talend.components.netsuite.runtime.client.search;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
@@ -33,11 +38,6 @@ import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorNa
 import org.talend.components.netsuite.runtime.model.search.SearchFieldOperatorType;
 import org.talend.components.netsuite.runtime.model.search.SearchFieldType;
 import org.talend.components.netsuite.service.Messages;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Responsible for building of NetSuite search record.
@@ -96,48 +96,60 @@ public class SearchQuery<SearchT, RecT> {
     /** List of custom search fields. */
     private List<Object> customFieldList = new ArrayList<>();
 
-    public SearchQuery(NetSuiteClientService<?> clientService, MetaDataSource metaDataSource, Messages i18n) {
+    public SearchQuery(NetSuiteClientService<?> clientService, MetaDataSource metaDataSource, Messages i18n,
+            String recordTypeName, boolean customizationEnabled) {
         this.clientService = clientService;
         this.i18n = i18n;
         this.metaDataSource = metaDataSource != null ? metaDataSource : clientService.getMetaDataSource();
-    }
 
-    /**
-     * Set target for search.
-     *
-     * @param recordTypeName name of target record type
-     * @return this search query object
-     * @throws NetSuiteException if an error occurs during obtaining of meta data for record type
-     */
-    public SearchQuery<?, ?> target(final String recordTypeName) {
         this.recordTypeName = recordTypeName;
 
-        recordTypeInfo = metaDataSource.getRecordType(recordTypeName);
-        searchRecordTypeDesc = metaDataSource.getSearchRecordType(recordTypeName);
+        recordTypeInfo = metaDataSource.getRecordType(recordTypeName, customizationEnabled);
+        searchRecordTypeDesc = metaDataSource.getSearchRecordType(recordTypeName, customizationEnabled);
 
         // search not found or not supported
         if (searchRecordTypeDesc == null) {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
                     i18n.searchRecordNotFound(recordTypeName));
         }
-
-        return this;
     }
+
+    // /**
+    // * Set target for search.
+    // *
+    // * @param recordTypeName name of target record type
+    // * @return this search query object
+    // * @throws NetSuiteException if an error occurs during obtaining of meta data for record type
+    // */
+    // public SearchQuery<?, ?> target(final String recordTypeName) {
+    // this.recordTypeName = recordTypeName;
+    //
+    // recordTypeInfo = metaDataSource.getRecordType(recordTypeName);
+    // searchRecordTypeDesc = metaDataSource.getSearchRecordType(recordTypeName);
+    //
+    // // search not found or not supported
+    // if (searchRecordTypeDesc == null) {
+    // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
+    // i18n.searchRecordNotFound(recordTypeName));
+    // }
+    //
+    // return this;
+    // }
 
     public SearchQuery<?, ?> savedSearchId(String savedSearchId) {
         this.savedSearchId = savedSearchId;
         return this;
     }
 
-    public RecordTypeInfo getRecordTypeInfo() {
-        initSearch();
-        return recordTypeInfo;
-    }
-
-    public SearchRecordTypeDesc getSearchRecordTypeDesc() {
-        initSearch();
-        return searchRecordTypeDesc;
-    }
+    // public RecordTypeInfo getRecordTypeInfo() {
+    // initSearch();
+    // return recordTypeInfo;
+    // }
+    //
+    // public SearchRecordTypeDesc getSearchRecordTypeDesc() {
+    // initSearch();
+    // return searchRecordTypeDesc;
+    // }
 
     /**
      * Performs lazy initialization of search query.

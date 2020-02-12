@@ -12,12 +12,16 @@
  */
 package org.talend.components.netsuite.processor;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
-import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsRef;
+import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.CustomRecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
@@ -32,12 +36,8 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.record.Schema.Entry;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Responsible for translating of input {@code Record} to output NetSuite data object.
@@ -46,9 +46,6 @@ import java.util.Set;
  * Output NetSuite data object can be {@code Record} or {@code RecordRef}.
  */
 public class NsObjectOutputTransducer extends NsObjectTransducer {
-
-    /** Name of target NetSuite data model object type. */
-    private String typeName;
 
     /** Specifies whether output NetSuite data object is {@code RecordRef}. */
     private boolean reference;
@@ -59,42 +56,12 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
     /** Information about target record type. */
     private RecordTypeInfo recordTypeInfo;
 
-    /** Information for picklist type */
-    private String apiVersion;
-
-    private Schema schema;
-
-    public NsObjectOutputTransducer(NetSuiteClientService<?> clientService, Messages i18n, String typeName, Schema schema,
-            String apiVersion) {
-        super(clientService, i18n, apiVersion);
-        this.typeName = typeName;
-        this.schema = schema;
-    }
-
-    public boolean isReference() {
-        return reference;
-    }
-
-    public void setReference(boolean reference) {
-        this.reference = reference;
-    }
-
-    /**
-     * Prepare processing of data object.
-     */
-    private void prepare() {
-        if (typeDesc != null) {
-            return;
-        }
-
-        recordTypeInfo = metaDataSource.getRecordType(typeName);
-        if (reference) {
-            // If target NetSuite data object is record ref then
-            // we should get descriptor for RecordRef type.
-            typeDesc = metaDataSource.getTypeInfo(recordTypeInfo.getRefType().getTypeName());
-        } else {
-            typeDesc = metaDataSource.getTypeInfo(typeName);
-        }
+    public NsObjectOutputTransducer(BasicMetaData basicMetaData, Messages i18n, TypeDesc typeDesc, Schema schema,
+            String apiVersion, boolean isReference, RecordTypeInfo recordTypeInfo) {
+        super(basicMetaData, i18n, apiVersion, schema);
+        this.typeDesc = typeDesc;
+        this.reference = isReference;
+        this.recordTypeInfo = recordTypeInfo;
     }
 
     /**
@@ -104,8 +71,6 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
      * @return NetSuite data object
      */
     public Object write(Record record) {
-        prepare();
-
         Map<String, FieldDesc> fieldMap = typeDesc.getFieldMap();
         BeanInfo beanInfo = Beans.getBeanInfo(typeDesc.getTypeClass());
 
@@ -117,7 +82,7 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
             targetTypeName = typeDesc.getTypeName();
         }
 
-        Object nsObject = clientService.getBasicMetaData().createInstance(targetTypeName);
+        Object nsObject = basicMetaData.createInstance(targetTypeName);
 
         // Names of fields to be null'ed.
         Set<String> nullFieldNames = new HashSet<>();
@@ -192,7 +157,7 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
         // Set null fields
 
         if (!nullFieldNames.isEmpty() && beanInfo.getProperty(NULL_FIELD_LIST) != null) {
-            Object nullFieldListWrapper = clientService.getBasicMetaData().createInstance(NULL_FIELD);
+            Object nullFieldListWrapper = basicMetaData.createInstance(NULL_FIELD);
             Beans.setSimpleProperty(nsObject, NULL_FIELD_LIST, nullFieldListWrapper);
             List<String> nullFields = (List<String>) Beans.getSimpleProperty(nullFieldListWrapper, NAME);
             nullFields.addAll(nullFieldNames);
@@ -200,14 +165,4 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
 
         return nsObject;
     }
-
-    @Override
-    public String getApiVersion() {
-        return apiVersion;
-    }
-
-    public void setApiVersion(ApiVersion apiVersion) {
-        this.apiVersion = apiVersion.getVersion();
-    }
-
 }

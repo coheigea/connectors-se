@@ -12,8 +12,11 @@
  */
 package org.talend.components.netsuite.processor;
 
-import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
@@ -23,7 +26,7 @@ import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties.DataAction;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
-import org.talend.components.netsuite.service.NetSuiteService;
+import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.source.NsObjectInputTransducer;
 import org.talend.components.netsuite.test.TestCollector;
 import org.talend.components.netsuite.test.TestEmitter;
@@ -31,10 +34,9 @@ import org.talend.components.netsuite.utils.SampleData;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.junit5.WithComponents;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
+
+import lombok.extern.slf4j.Slf4j;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -61,9 +63,10 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         outputProperties.setAction(DataAction.ADD);
         List<String> schemaFields = Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId",
                 "ExternalId");
-        NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
-        NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), "Account", "2019.2");
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
+        TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo("Account", dataSet.isEnableCustomization());
+        NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService.getBasicMetaData(), messages, factory,
+                netSuiteService.getSchema(dataSet, schemaFields), typeDesc, "2019.2");
         Record record = inputTransducer.read(() -> SampleData.prepareAccountRecord(null, testIdPrefix));
         buildAndRunCollectorJob(outputProperties, Collections.singletonList(record));
 
@@ -115,9 +118,11 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         dataSet.setRecordType("customrecordqacomp_custom_recordtype");
         List<String> schemaFields = Arrays.asList("Name", "Custrecord79", "Custrecord80", "InternalId", "ExternalId");
         outputProperties.setUseNativeUpsert(isNativeUpsert);
-        NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
-        NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), "customrecordqacomp_custom_recordtype", "2019.2");
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
+        TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo("customrecordqacomp_custom_recordtype",
+                dataSet.isEnableCustomization());
+        NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService.getBasicMetaData(), messages, factory,
+                netSuiteService.getSchema(dataSet, schemaFields), typeDesc, "2019.2");
         NetSuiteInputProperties inputDataSet = new NetSuiteInputProperties();
         inputDataSet.setDataSet(dataSet);
 
@@ -168,9 +173,10 @@ public class NetSuiteOutputProcessorTest extends NetSuiteBaseTest {
         List<String> schemaFields = Arrays.asList("Custbody_clarivates_custom", "Custbody111", "Subsidiary", "ItemList",
                 "Message", "CustomForm", "Entity", "ExchangeRate", "SupervisorApproval", "InternalId", "ExternalId");
 
-        NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
-        NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), "PurchaseOrder", "2019.2");
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
+        TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo("PurchaseOrder", dataSet.isEnableCustomization());
+        NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService.getBasicMetaData(), messages, factory,
+                netSuiteService.getSchema(dataSet, schemaFields), typeDesc, "2019.2");
 
         Record record = inputTransducer.read(SampleData::preparePurchaseOrder);
 

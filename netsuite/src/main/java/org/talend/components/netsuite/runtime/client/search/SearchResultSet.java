@@ -12,7 +12,12 @@
  */
 package org.talend.components.netsuite.runtime.client.search;
 
-import lombok.Getter;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.IntStream;
+
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -22,11 +27,7 @@ import org.talend.components.netsuite.runtime.model.BasicRecordType;
 import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.IntStream;
+import lombok.Getter;
 
 import static java.util.stream.Collectors.toCollection;
 
@@ -68,11 +69,12 @@ public class SearchResultSet<R> implements ResultSet<R> {
      */
     private R current;
 
-    public SearchResultSet(NetSuiteClientService<?> clientService, String recordTypeName, PageSelection pageSelection) {
+    public SearchResultSet(NetSuiteClientService<?> clientService, String recordTypeName, PageSelection pageSelection,
+            boolean customizationEnabled) {
         this.clientService = clientService;
         this.pageSelection = pageSelection;
-        recordTypeDesc = clientService.getMetaDataSource().getRecordType(recordTypeName);
-        searchRecordTypeDesc = clientService.getMetaDataSource().getSearchRecordType(recordTypeName);
+        recordTypeDesc = clientService.getMetaDataSource().getRecordType(recordTypeName, customizationEnabled);
+        searchRecordTypeDesc = clientService.getMetaDataSource().getSearchRecordType(recordTypeName, customizationEnabled);
         // search not found or not supported
         if (searchRecordTypeDesc == null) {
             throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),

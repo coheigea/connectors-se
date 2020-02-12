@@ -12,7 +12,12 @@
  */
 package org.talend.components.netsuite.source;
 
-import lombok.Getter;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
@@ -23,11 +28,7 @@ import org.talend.components.netsuite.runtime.client.search.SearchCondition;
 import org.talend.components.netsuite.runtime.client.search.SearchQuery;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import lombok.Getter;
 
 import static java.util.stream.Collectors.toList;
 
@@ -65,9 +66,9 @@ public class NetSuiteInputSearcher {
      */
     private SearchQuery<?, ?> buildSearchQuery() {
         String recordType = configuration.getDataSet().getRecordType();
+        boolean customizationEnbled = configuration.getDataSet().isEnableCustomization();
 
-        SearchQuery<?, ?> search = clientService.newSearch(clientService.getMetaDataSource());
-        search.target(recordType);
+        SearchQuery<?, ?> search = clientService.newSearch(clientService.getMetaDataSource(), recordType, customizationEnbled);
         Optional<List<SearchConditionConfiguration>> searchConfigurationsOptional = Optional
                 .ofNullable(configuration.getSearchCondition()).filter(list -> !list.isEmpty());
         searchConfigurationsOptional.ifPresent(searchConditionConfigurations -> searchConditionConfigurations.stream()

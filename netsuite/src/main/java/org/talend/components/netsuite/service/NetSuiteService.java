@@ -12,12 +12,17 @@
  */
 package org.talend.components.netsuite.service;
 
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
-import org.talend.components.netsuite.datastore.NetSuiteDataStore;
-import org.talend.components.netsuite.runtime.NetSuiteEndpoint;
 import org.talend.components.netsuite.runtime.client.MetaDataSource;
-import org.talend.components.netsuite.runtime.client.NetSuiteClientFactory;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
@@ -31,29 +36,16 @@ import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.completion.SuggestionValues;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-import javax.xml.datatype.XMLGregorianCalendar;
+import lombok.extern.slf4j.Slf4j;
 
 import static java.util.stream.Collectors.toList;
 
+@Slf4j
 @Service
 public class NetSuiteService {
 
     public static final Predicate<String> FILTER_EXTRA_SEARCH_FIELDS = name -> !"recType".equals(name)
             && !"customFieldList".equals(name);
-
-    // private NetSuiteClientService<?> clientService;
-
-    private transient Map<NetSuiteDataSet, NetSuiteClientService> dataSetToClientService;
 
     @Service
     private RecordBuilderFactory recordBuilderFactory;
@@ -61,32 +53,12 @@ public class NetSuiteService {
     @Service
     private Messages i18n;
 
-    @PostConstruct
-    public void init() {
-        dataSetToClientService = new ConcurrentHashMap<>();
-    }
-
-    // public NetSuiteService(RecordBuilderFactory recordBuilderFactory, Messages i18n) {
-    // this.recordBuilderFactory = recordBuilderFactory;
-    // this.i18n = i18n;
-    // }
-
-    public synchronized NetSuiteClientService connect(NetSuiteDataStore dataStore) {
-        NetSuiteClientFactory<?> netSuiteClientFactory;
-        switch (dataStore.getApiVersion()) {
-        case V2019_2:
-            netSuiteClientFactory = org.talend.components.netsuite.runtime.v2019_2.client.NetSuiteClientFactoryImpl.getFactory();
-            break;
-        default:
-            throw new RuntimeException("Unknown API version: " + dataStore.getApiVersion());
-        }
-        NetSuiteEndpoint endpoint = new NetSuiteEndpoint(netSuiteClientFactory, i18n, dataStore);
-        return endpoint.getClientService();
-    }
+    @Service
+    private NetSuiteClientConnectionService netSuiteClientConnectionService;
 
     List<SuggestionValues.Item> getRecordTypes(NetSuiteDataSet dataSet) {
-        NetSuiteClientService clientService = init(dataSet);
-        return clientService.getMetaDataSource().getRecordTypes().stream()
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
+        return clientService.getMetaDataSource().getRecordTypes(dataSet.isEnableCustomization()).stream()
                 .map(record -> new SuggestionValues.Item(record.getName(), record.getDisplayName()))
                 .sorted(Comparator.comparing(i -> i.getLabel().toLowerCase())).collect(Collectors.toList());
     }
@@ -95,21 +67,23 @@ public class NetSuiteService {
         if (StringUtils.isEmpty(dataSet.getRecordType())) {
             return Collections.emptyList();
         }
-        NetSuiteClientService clientService = init(dataSet);
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
         MetaDataSource metaDataSource = clientService.getMetaDataSource();
-        final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(dataSet.getRecordType());
+        final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(dataSet.getRecordType(),
+                dataSet.isEnableCustomization());
         final TypeDesc searchRecordInfo = metaDataSource.getBasicMetaData().getTypeInfo(searchInfo.getSearchBasicClass());
         List<String> fields = searchRecordInfo.getFields().stream().map(FieldDesc::getName).filter(FILTER_EXTRA_SEARCH_FIELDS)
                 .sorted().collect(toList());
-        fields.addAll(metaDataSource.getSearchRecordCustomFields(dataSet.getRecordType()));
+        fields.addAll(metaDataSource.getSearchRecordCustomFields(dataSet.getRecordType(), dataSet.isEnableCustomization()));
         return new SearchInfo(searchRecordInfo.getTypeName(), fields).getFields().stream()
                 .map(searchType -> new SuggestionValues.Item(searchType, searchType)).collect(Collectors.toList());
     }
 
     List<SuggestionValues.Item> getSearchFieldOperators(NetSuiteDataSet dataSet, String field) {
-        NetSuiteClientService clientService = init(dataSet);
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
         MetaDataSource metaDataSource = clientService.getMetaDataSource();
-        final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(dataSet.getRecordType());
+        final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(dataSet.getRecordType(),
+                dataSet.isEnableCustomization());
         final FieldDesc fieldDesc = metaDataSource.getBasicMetaData().getTypeInfo(searchInfo.getSearchBasicClass())
                 .getField(field);
         return metaDataSource.getBasicMetaData().getSearchOperatorNames(fieldDesc).stream()
@@ -117,10 +91,11 @@ public class NetSuiteService {
     }
 
     public Schema getSchema(NetSuiteDataSet dataSet, List<String> stringSchema) {
-        NetSuiteClientService clientService = init(dataSet);
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
         final boolean schemaNotDesigned = (stringSchema == null);
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
-        clientService.getMetaDataSource().getTypeInfo(dataSet.getRecordType()).getFields().stream()
+        clientService.getMetaDataSource().getTypeInfo(dataSet.getRecordType(), dataSet.isEnableCustomization()).getFields()
+                .stream()
                 .filter(field -> schemaNotDesigned
                         || stringSchema.stream().anyMatch(element -> element.equalsIgnoreCase(field.getName())))
                 .sorted(new FieldDescComparator()).map(this::buildEntryFromFieldDescription).forEach(builder::withEntry);
@@ -166,16 +141,6 @@ public class NetSuiteService {
                 return Schema.Type.STRING;
             }
         }
-    }
-
-    public NetSuiteClientService<?> getClientService(NetSuiteDataSet dataSet) {
-        return init(dataSet);
-    }
-
-    private NetSuiteClientService init(NetSuiteDataSet dataSet) {
-        NetSuiteClientService clientService = dataSetToClientService.computeIfAbsent(dataSet, ds -> connect(ds.getDataStore()));
-        clientService.getMetaDataSource().setCustomizationEnabled(dataSet.isEnableCustomization());
-        return clientService;
     }
 
     private static class FieldDescComparator implements Comparator<FieldDesc> {

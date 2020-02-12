@@ -12,11 +12,6 @@
  */
 package org.talend.components.netsuite.runtime;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
@@ -27,6 +22,12 @@ import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NetSuiteVersion;
 import org.talend.components.netsuite.runtime.client.NsTokenPassport;
 import org.talend.components.netsuite.service.Messages;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Represents NetSuite Web Service endpoint.
@@ -42,7 +43,7 @@ public class NetSuiteEndpoint {
     private ConnectionConfig connectionConfig;
 
     /** NetSuite client. */
-    private NetSuiteClientService<?> clientService;
+//    private NetSuiteClientService<?> clientService;
 
     private Messages i18n;
 
@@ -141,7 +142,7 @@ public class NetSuiteEndpoint {
      * @throws NetSuiteException if an error occurs during connecting
      */
     public NetSuiteClientService<?> getClientService() throws NetSuiteException {
-        return clientService == null ? connect() : clientService;
+        return connect();
     }
 
     /**

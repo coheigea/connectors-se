@@ -12,6 +12,13 @@
  */
 package org.talend.components.netsuite;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
 import org.junit.ClassRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
@@ -22,6 +29,7 @@ import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.ApiVersion;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore.LoginType;
 import org.talend.components.netsuite.service.Messages;
+import org.talend.components.netsuite.service.NetSuiteClientConnectionService;
 import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.components.netsuite.test.TestCollector;
 import org.talend.components.netsuite.test.TestEmitter;
@@ -31,13 +39,6 @@ import org.talend.sdk.component.junit.SimpleComponentRule;
 import org.talend.sdk.component.maven.MavenDecrypter;
 import org.talend.sdk.component.maven.Server;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
 
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
@@ -63,6 +64,8 @@ public abstract class NetSuiteBaseTest {
 
     protected static NetSuiteService netSuiteService;
 
+    protected static NetSuiteClientConnectionService netSuiteClientConnectionService;
+
     protected static Messages messages;
 
     protected static RecordBuilderFactory factory;
@@ -77,6 +80,7 @@ public abstract class NetSuiteBaseTest {
         messages = COMPONENT.findService(Messages.class);
         factory = COMPONENT.findService(RecordBuilderFactory.class);
         netSuiteService = COMPONENT.findService(NetSuiteService.class);
+        netSuiteClientConnectionService = COMPONENT.findService(NetSuiteClientConnectionService.class);
 
         final MavenDecrypter decrypter = new MavenDecrypter();
         Server consumer = decrypter.find("netsuite.consumer");

@@ -12,7 +12,6 @@
  */
 package org.talend.components.netsuite.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.talend.components.netsuite.dataset.NetSuiteDataSet;
 import org.talend.components.netsuite.datastore.NetSuiteDataStore;
 import org.talend.sdk.component.api.configuration.Option;
@@ -23,9 +22,8 @@ import org.talend.sdk.component.api.service.completion.Suggestions;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheck;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -47,10 +45,13 @@ public class UIActionService {
     @Service
     private NetSuiteService service;
 
+    @Service
+    private NetSuiteClientConnectionService netSuiteClientConnectionService;
+
     @HealthCheck(HEALTH_CHECK)
     public HealthCheckStatus validateConnection(@Option final NetSuiteDataStore dataStore) {
         try {
-            this.service.connect(dataStore);
+            netSuiteClientConnectionService.getClientService(dataStore);
             return new HealthCheckStatus(Status.OK, i18n.healthCheckOk());
         } catch (Exception e) {
             return new HealthCheckStatus(Status.KO, i18n.healthCheckFailed(e.getMessage()));

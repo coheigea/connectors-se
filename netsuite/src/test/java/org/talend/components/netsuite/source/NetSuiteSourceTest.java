@@ -12,10 +12,14 @@
  */
 package org.talend.components.netsuite.source;
 
-import com.netsuite.webservices.v2019_2.lists.accounting.Account;
-import com.netsuite.webservices.v2019_2.lists.accounting.types.AccountType;
-import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +30,7 @@ import org.talend.components.netsuite.dataset.NetSuiteInputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.SearchConditionConfiguration;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
+import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.test.TestCollector;
 import org.talend.components.netsuite.utils.SampleData;
 import org.talend.sdk.component.api.record.Record;
@@ -35,13 +40,11 @@ import org.talend.sdk.component.junit5.Injected;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.input.Mapper;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import com.netsuite.webservices.v2019_2.lists.accounting.Account;
+import com.netsuite.webservices.v2019_2.lists.accounting.types.AccountType;
+import com.netsuite.webservices.v2019_2.platform.core.types.SearchStringFieldOperator;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @WithComponents("org.talend.components.netsuite")
@@ -143,9 +146,10 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
         outputProperties.setAction(NetSuiteOutputProperties.DataAction.ADD);
         List<String> schemaFields = Arrays.asList("SubsidiaryList", "Description", "AcctName", "AcctType", "InternalId",
                 "ExternalId");
-        NetSuiteClientService<?> clientService = netSuiteService.getClientService(dataSet);
-        NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService, messages, factory,
-                netSuiteService.getSchema(dataSet, schemaFields), "Account", "2019.2");
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
+        TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo("Account", dataSet.isEnableCustomization());
+        NsObjectInputTransducer inputTransducer = new NsObjectInputTransducer(clientService.getBasicMetaData(), messages, factory,
+                netSuiteService.getSchema(dataSet, schemaFields), typeDesc, "2019.2");
         List<Record> newRecords = new LinkedList<>();
         for (int i = 0; i < numberOfRecords; i++) {
             int num = i;

@@ -12,15 +12,31 @@
  */
 package org.talend.components.netsuite.processor;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.lang3.StringUtils;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties;
 import org.talend.components.netsuite.dataset.NetSuiteOutputProperties.DataAction;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
+import org.talend.components.netsuite.runtime.client.MetaDataSource;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NsWriteResponse;
+import org.talend.components.netsuite.runtime.model.BasicMetaData;
+import org.talend.components.netsuite.runtime.model.RecordTypeInfo;
+import org.talend.components.netsuite.runtime.model.TypeDesc;
 import org.talend.components.netsuite.runtime.model.beans.Beans;
 import org.talend.components.netsuite.service.Messages;
+import org.talend.components.netsuite.service.NetSuiteClientConnectionService;
 import org.talend.components.netsuite.service.NetSuiteService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -35,16 +51,7 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.IntStream;
+import lombok.extern.slf4j.Slf4j;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -66,6 +73,8 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     private transient NetSuiteClientService<?> clientService;
 
+    private final NetSuiteClientConnectionService netSuiteClientConnectionService;
+
     private transient NsObjectOutputTransducer transducer;
 
     private transient Function<List<?>, List<NsWriteResponse<?>>> dataActionFunction;
@@ -73,21 +82,37 @@ public class NetSuiteOutputProcessor implements Serializable {
     private transient List<Record> inputRecordList;
 
     public NetSuiteOutputProcessor(@Option("configuration") final NetSuiteOutputProperties configuration,
-            RecordBuilderFactory recordBuilderFactory, Messages i18n, NetSuiteService netSuiteService) {
+            RecordBuilderFactory recordBuilderFactory, Messages i18n, NetSuiteService netSuiteService,
+            NetSuiteClientConnectionService netSuiteClientConnectionService) {
         this.recordBuilderFactory = recordBuilderFactory;
         this.configuration = configuration;
         this.i18n = i18n;
         this.netSuiteService = netSuiteService;
+        this.netSuiteClientConnectionService = netSuiteClientConnectionService;
     }
 
     @PostConstruct
     public void init() {
-        clientService = netSuiteService.getClientService(configuration.getDataSet());
+        clientService = netSuiteClientConnectionService.getClientService(configuration.getDataSet().getDataStore());
         Schema schema = netSuiteService.getSchema(configuration.getDataSet(), null);
         referenceDataActionFunction();
-        transducer = new NsObjectOutputTransducer(clientService, i18n, configuration.getDataSet().getRecordType(), schema,
-                configuration.getDataSet().getDataStore().getApiVersion().getVersion());
-        transducer.setReference(configuration.getAction() == DataAction.DELETE);
+        boolean isReference = (configuration.getAction() == DataAction.DELETE);
+        MetaDataSource metaDataSource = clientService.getMetaDataSource();
+        BasicMetaData basicMetaData = clientService.getBasicMetaData();
+        boolean isEnableCustomization = configuration.getDataSet().isEnableCustomization();
+        RecordTypeInfo recordTypeInfo = metaDataSource.getRecordType(configuration.getDataSet().getRecordType(),
+                isEnableCustomization);
+        String typeName;
+        if (isReference) {
+            // If target NetSuite data object is record ref then
+            // we should get descriptor for RecordRef type.
+            typeName = recordTypeInfo.getRefType().getTypeName();
+        } else {
+            typeName = configuration.getDataSet().getRecordType();
+        }
+        TypeDesc typeDesc = metaDataSource.getTypeInfo(typeName, isEnableCustomization);
+        transducer = new NsObjectOutputTransducer(basicMetaData, i18n, typeDesc, schema,
+                configuration.getDataSet().getDataStore().getApiVersion().getVersion(), isReference, recordTypeInfo);
         inputRecordList = new ArrayList<>();
     }
 

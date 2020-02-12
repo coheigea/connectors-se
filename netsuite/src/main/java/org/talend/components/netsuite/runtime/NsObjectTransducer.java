@@ -12,16 +12,22 @@
  */
 package org.talend.components.netsuite.runtime;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
-import lombok.Data;
-import org.talend.components.netsuite.runtime.client.MetaDataSource;
-import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NsRef;
 import org.talend.components.netsuite.runtime.converter.ConverterFactory;
 import org.talend.components.netsuite.runtime.converter.ConverterFactory.Converter;
 import org.talend.components.netsuite.runtime.json.NsTypeResolverBuilder;
+import org.talend.components.netsuite.runtime.model.BasicMetaData;
 import org.talend.components.netsuite.runtime.model.CustomFieldDesc;
 import org.talend.components.netsuite.runtime.model.FieldDesc;
 import org.talend.components.netsuite.runtime.model.SimpleFieldDesc;
@@ -32,14 +38,10 @@ import org.talend.components.netsuite.runtime.model.customfield.CustomFieldRefTy
 import org.talend.components.netsuite.service.Messages;
 import org.talend.sdk.component.api.record.Schema;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
+
+import lombok.Data;
 
 /**
  * Responsible for translating of NetSuite data object to/from {@code IndexedRecord}.
@@ -77,12 +79,12 @@ public abstract class NsObjectTransducer {
     public static final String NULL_FIELD = "NullField";
 
     /** NetSuite client used. */
-    protected NetSuiteClientService<?> clientService;
+    // protected NetSuiteClientService<?> clientService;
 
     protected Messages i18n;
 
     /** Source of meta data used. */
-    protected final MetaDataSource metaDataSource;
+    // protected final MetaDataSource metaDataSource;
 
     /** XML data type factory used. */
     protected final DatatypeFactory datatypeFactory;
@@ -95,15 +97,20 @@ public abstract class NsObjectTransducer {
 
     private String apiVersion;
 
+    protected BasicMetaData basicMetaData;
+
+    protected Schema schema;
+
     /**
      * Creates instance of transducer using given NetSuite client.
      *
      * @param clientService client to be used
      */
-    protected NsObjectTransducer(NetSuiteClientService<?> clientService, Messages i18n, String apiVersion) {
-        this.clientService = clientService;
+    protected NsObjectTransducer(BasicMetaData basicMetaData, Messages i18n, String apiVersion, Schema schema) {
+        this.basicMetaData = basicMetaData;
         this.i18n = i18n;
         this.apiVersion = apiVersion;
+        this.schema = schema;
         try {
             datatypeFactory = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {
@@ -114,12 +121,12 @@ public abstract class NsObjectTransducer {
         objectMapper = new ObjectMapper();
 
         // Customize typing of JSON objects.
-        objectMapper.setDefaultTyping(new NsTypeResolverBuilder(clientService.getBasicMetaData()));
+        objectMapper.setDefaultTyping(new NsTypeResolverBuilder(basicMetaData));
 
         // Register JAXB annotation module to perform mapping of data model objects to/from JSON.
         objectMapper.registerModule(new JaxbAnnotationModule());
 
-        metaDataSource = clientService.getMetaDataSource();
+        // metaDataSource = clientService.getMetaDataSource();
     }
 
     /**
@@ -257,7 +264,7 @@ public abstract class NsObjectTransducer {
         // Create custom field list wrapper if required
         Object customFieldListWrapper = Beans.getSimpleProperty(nsObject, CUSTOM_FIELD_LIST);
         if (customFieldListWrapper == null) {
-            customFieldListWrapper = clientService.getBasicMetaData().createInstance(CUSTOM_FIELD_LIST_UPPER_CASE_NAME);
+            customFieldListWrapper = basicMetaData.createInstance(CUSTOM_FIELD_LIST_UPPER_CASE_NAME);
             Beans.setSimpleProperty(nsObject, CUSTOM_FIELD_LIST, customFieldListWrapper);
         }
         List<Object> customFieldList = (List<Object>) Beans.getSimpleProperty(customFieldListWrapper, CUSTOM_FIELD);
@@ -276,7 +283,7 @@ public abstract class NsObjectTransducer {
             if (customField == null) {
                 // Custom field instance doesn't exist,
                 // create new instance and set identifiers
-                customField = clientService.getBasicMetaData().createInstance(customFieldRefType.getTypeName());
+                customField = basicMetaData.createInstance(customFieldRefType.getTypeName());
                 Beans.setSimpleProperty(customField, SCRIPT_ID, ref.getScriptId());
                 Beans.setSimpleProperty(customField, INTERNAL_ID, ref.getInternalId());
 
@@ -358,12 +365,8 @@ public abstract class NsObjectTransducer {
         return valueClass != null ? getValueConverter(valueClass) : getValueConverter((Class<?>) null);
     }
 
-    protected String getApiVersion() {
-        return this.apiVersion;
-    }
-
     public Class<?> getPicklistClass() {
-        String version = getApiVersion();
+        String version = apiVersion;
         String pattern = "20\\d{2}\\.\\d+";
         if (version != null && Pattern.matches(pattern, version)) {
             try {

@@ -12,21 +12,6 @@
  */
 package org.talend.components.netsuite.runtime.client;
 
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.cxf.endpoint.Client;
-import org.apache.cxf.frontend.ClientProxy;
-import org.apache.cxf.headers.Header;
-import org.apache.cxf.transport.http.HTTPConduit;
-import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
-import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
-import org.talend.components.netsuite.runtime.client.search.SearchQuery;
-import org.talend.components.netsuite.runtime.model.BasicMetaData;
-import org.talend.components.netsuite.service.Messages;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -37,6 +22,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import javax.xml.ws.BindingProvider;
+
+import org.apache.cxf.endpoint.Client;
+import org.apache.cxf.frontend.ClientProxy;
+import org.apache.cxf.headers.Header;
+import org.apache.cxf.transport.http.HTTPConduit;
+import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
+import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
+import org.talend.components.netsuite.runtime.client.search.SearchQuery;
+import org.talend.components.netsuite.runtime.model.BasicMetaData;
+import org.talend.components.netsuite.service.Messages;
+
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
 @Slf4j
@@ -166,22 +168,13 @@ public abstract class NetSuiteClientService<PortT> {
     }
 
     /**
-     * Create new search query object.
-     *
-     * @return search query object
-     */
-    public SearchQuery<?, ?> newSearch() {
-        return newSearch(getMetaDataSource());
-    }
-
-    /**
      * Create new search query object using given meta data source.
      *
      * @param metaDataSource meta data source
      * @return search query object
      */
-    public SearchQuery<?, ?> newSearch(MetaDataSource metaDataSource) {
-        return new SearchQuery<>(this, metaDataSource, i18n);
+    public SearchQuery<?, ?> newSearch(MetaDataSource metaDataSource, String recordTypeName, boolean customizationEnabled) {
+        return new SearchQuery<>(this, metaDataSource, i18n, recordTypeName, customizationEnabled);
     }
 
     /**
