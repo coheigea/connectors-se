@@ -62,7 +62,7 @@ public class NetSuiteInputSource implements Serializable {
     @PostConstruct
     public void init() {
         NetSuiteClientService<?> clientService = netSuiteClientConnectionService
-                .getClientService(configuration.getDataSet().getDataStore());
+                .getClientService(configuration.getDataSet().getDataStore(), i18n);
         Schema runtimeSchema = netSuiteService.getSchema(configuration.getDataSet(), null);
         RecordTypeInfo recordTypeInfo = rs.getRecordTypeDesc();
         TypeDesc typeDesc = clientService.getMetaDataSource().getTypeInfo(recordTypeInfo.getName(),

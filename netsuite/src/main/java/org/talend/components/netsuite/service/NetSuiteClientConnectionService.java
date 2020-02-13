@@ -25,10 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class NetSuiteClientConnectionService {
 
-    @Service
-    private Messages i18n;
-
-    private NetSuiteClientService<?> connect(NetSuiteDataStore dataStore) {
+    private NetSuiteClientService<?> connect(NetSuiteDataStore dataStore, Messages i18n) {
         NetSuiteClientFactory<?> netSuiteClientFactory;
         switch (dataStore.getApiVersion()) {
         case V2019_2:
@@ -42,7 +39,7 @@ public class NetSuiteClientConnectionService {
     }
 
     @Cached(timeout = 300000)
-    public NetSuiteClientService<?> getClientService(NetSuiteDataStore dataStore) {
-        return connect(dataStore);
+    public NetSuiteClientService<?> getClientService(NetSuiteDataStore dataStore, Messages i18n) {
+        return connect(dataStore, i18n);
     }
 }

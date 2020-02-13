@@ -36,23 +36,27 @@ public class NetSuiteClientConnectionServiceTest extends NetSuiteBaseTest {
         dataStoreLocal.setApiVersion(ApiVersion.V2019_2);
 
         // Missing account
-        Assertions.assertThrows(NetSuiteException.class, () -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertThrows(NetSuiteException.class,
+                () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
         // Missing email
         dataStoreLocal.setAccount(NETSUITE_ACCOUNT);
         dataStoreLocal.setLoginType(LoginType.BASIC);
-        Assertions.assertThrows(NetSuiteException.class, () -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertThrows(NetSuiteException.class,
+                () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
         final MavenDecrypter decrypter = new MavenDecrypter();
         Server netsuiteCredentials = decrypter.find("netsuite");
 
         // Missing password
         dataStoreLocal.setEmail(netsuiteCredentials.getUsername());
-        Assertions.assertThrows(NetSuiteException.class, () -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertThrows(NetSuiteException.class,
+                () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
         // Missing roleId
         dataStoreLocal.setPassword(netsuiteCredentials.getPassword());
-        Assertions.assertThrows(NetSuiteException.class, () -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertThrows(NetSuiteException.class,
+                () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
     }
 
     @Test
@@ -62,30 +66,35 @@ public class NetSuiteClientConnectionServiceTest extends NetSuiteBaseTest {
         dataStoreLocal.setApiVersion(ApiVersion.V2019_2);
 
         // Missing account
-        Assertions.assertThrows(NetSuiteException.class, () -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertThrows(NetSuiteException.class,
+                () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
         // Missing consumer key
         dataStoreLocal.setAccount(NETSUITE_ACCOUNT);
         dataStoreLocal.setLoginType(LoginType.TBA);
-        Assertions.assertThrows(NetSuiteException.class, () -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertThrows(NetSuiteException.class,
+                () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
         final MavenDecrypter decrypter = new MavenDecrypter();
         Server consumer = decrypter.find("netsuite.consumer");
         Server token = decrypter.find("netsuite.token");
         // Missing consumer secret
         dataStoreLocal.setConsumerKey(consumer.getUsername());
-        Assertions.assertThrows(NetSuiteException.class, () -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertThrows(NetSuiteException.class,
+                () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
         // Missing missing token id
         dataStoreLocal.setConsumerSecret(consumer.getPassword());
-        Assertions.assertThrows(NetSuiteException.class, () -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertThrows(NetSuiteException.class,
+                () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
         // Missing missing token secret
         dataStoreLocal.setTokenId(token.getUsername());
-        Assertions.assertThrows(NetSuiteException.class, () -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertThrows(NetSuiteException.class,
+                () -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
 
         // OK
         dataStoreLocal.setTokenSecret(token.getPassword());
-        Assertions.assertDoesNotThrow(() -> netSuiteClientConnectionService.getClientService(dataStoreLocal));
+        Assertions.assertDoesNotThrow(() -> netSuiteClientConnectionService.getClientService(dataStoreLocal, i18n));
     }
 }

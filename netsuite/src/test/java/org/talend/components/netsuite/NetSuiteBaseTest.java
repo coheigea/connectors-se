@@ -66,7 +66,7 @@ public abstract class NetSuiteBaseTest {
 
     protected static NetSuiteClientConnectionService netSuiteClientConnectionService;
 
-    protected static Messages messages;
+    protected static Messages i18n;
 
     protected static RecordBuilderFactory factory;
 
@@ -77,7 +77,7 @@ public abstract class NetSuiteBaseTest {
     public static void setupOnce() throws IOException {
         readPropertiesFile();
 
-        messages = COMPONENT.findService(Messages.class);
+        i18n = COMPONENT.findService(Messages.class);
         factory = COMPONENT.findService(RecordBuilderFactory.class);
         netSuiteService = COMPONENT.findService(NetSuiteService.class);
         netSuiteClientConnectionService = COMPONENT.findService(NetSuiteClientConnectionService.class);

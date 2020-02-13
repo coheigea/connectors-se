@@ -43,7 +43,7 @@ public class NetSuiteEndpoint {
     private ConnectionConfig connectionConfig;
 
     /** NetSuite client. */
-//    private NetSuiteClientService<?> clientService;
+    // private NetSuiteClientService<?> clientService;
 
     private Messages i18n;
 

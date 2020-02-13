@@ -93,7 +93,7 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     @PostConstruct
     public void init() {
-        clientService = netSuiteClientConnectionService.getClientService(configuration.getDataSet().getDataStore());
+        clientService = netSuiteClientConnectionService.getClientService(configuration.getDataSet().getDataStore(), i18n);
         Schema schema = netSuiteService.getSchema(configuration.getDataSet(), null);
         referenceDataActionFunction();
         boolean isReference = (configuration.getAction() == DataAction.DELETE);

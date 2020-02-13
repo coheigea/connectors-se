@@ -57,7 +57,7 @@ public class NetSuiteService {
     private NetSuiteClientConnectionService netSuiteClientConnectionService;
 
     List<SuggestionValues.Item> getRecordTypes(NetSuiteDataSet dataSet) {
-        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore(), i18n);
         return clientService.getMetaDataSource().getRecordTypes(dataSet.isEnableCustomization()).stream()
                 .map(record -> new SuggestionValues.Item(record.getName(), record.getDisplayName()))
                 .sorted(Comparator.comparing(i -> i.getLabel().toLowerCase())).collect(Collectors.toList());
@@ -67,7 +67,7 @@ public class NetSuiteService {
         if (StringUtils.isEmpty(dataSet.getRecordType())) {
             return Collections.emptyList();
         }
-        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore(), i18n);
         MetaDataSource metaDataSource = clientService.getMetaDataSource();
         final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(dataSet.getRecordType(),
                 dataSet.isEnableCustomization());
@@ -80,7 +80,7 @@ public class NetSuiteService {
     }
 
     List<SuggestionValues.Item> getSearchFieldOperators(NetSuiteDataSet dataSet, String field) {
-        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore(), i18n);
         MetaDataSource metaDataSource = clientService.getMetaDataSource();
         final SearchRecordTypeDesc searchInfo = metaDataSource.getSearchRecordType(dataSet.getRecordType(),
                 dataSet.isEnableCustomization());
@@ -91,7 +91,7 @@ public class NetSuiteService {
     }
 
     public Schema getSchema(NetSuiteDataSet dataSet, List<String> stringSchema) {
-        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore());
+        NetSuiteClientService<?> clientService = netSuiteClientConnectionService.getClientService(dataSet.getDataStore(), i18n);
         final boolean schemaNotDesigned = (stringSchema == null);
         Schema.Builder builder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
         clientService.getMetaDataSource().getTypeInfo(dataSet.getRecordType(), dataSet.isEnableCustomization()).getFields()

@@ -51,7 +51,7 @@ public class UIActionService {
     @HealthCheck(HEALTH_CHECK)
     public HealthCheckStatus validateConnection(@Option final NetSuiteDataStore dataStore) {
         try {
-            netSuiteClientConnectionService.getClientService(dataStore);
+            netSuiteClientConnectionService.getClientService(dataStore, i18n);
             return new HealthCheckStatus(Status.OK, i18n.healthCheckOk());
         } catch (Exception e) {
             return new HealthCheckStatus(Status.KO, i18n.healthCheckFailed(e.getMessage()));

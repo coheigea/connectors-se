@@ -74,7 +74,7 @@ public class NetSuiteInputMapper implements Serializable {
         // rs can be deserialized at worker
         if (pageSelection == null) {
             NetSuiteClientService<?> clientService = netSuiteClientConnectionService
-                    .getClientService(configuration.getDataSet().getDataStore());
+                    .getClientService(configuration.getDataSet().getDataStore(), i18n);
             NetSuiteInputSearcher searcher = new NetSuiteInputSearcher(configuration, clientService);
             NsSearchResult<?> rs = searcher.search();
             // this value is used in case of no splitting
@@ -127,7 +127,7 @@ public class NetSuiteInputMapper implements Serializable {
         // service = new NetSuiteService(recordBuilderFactory, i18n);
         // }
         NetSuiteClientService<?> clientService = netSuiteClientConnectionService
-                .getClientService(configuration.getDataSet().getDataStore());
+                .getClientService(configuration.getDataSet().getDataStore(), i18n);
         clientService.setBodyFieldsOnly(configuration.isBodyFieldsOnly());
         String recordTypeName = configuration.getDataSet().getRecordType();
         SearchResultSet<?> srs = new SearchResultSet<>(clientService, recordTypeName, pageSelection,
