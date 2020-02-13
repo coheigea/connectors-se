@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -31,11 +31,10 @@ import lombok.Data;
 @Data
 @Checkable(ACTION_HEALTHCHECK)
 @DataStore("DynamicsCrmConnection")
-@GridLayout({ @GridLayout.Row({ "appType" }), @GridLayout.Row({ "username", "password" }),
-        @GridLayout.Row({ "serviceRootUrl" }), @GridLayout.Row({ "clientId" }), @GridLayout.Row({ "clientSecret" }),
-        @GridLayout.Row({ "authorizationEndpoint" }) })
+@GridLayout({ @GridLayout.Row({ "appType" }), @GridLayout.Row({ "username", "password" }), @GridLayout.Row({ "serviceRootUrl" }),
+        @GridLayout.Row({ "clientId" }), @GridLayout.Row({ "clientSecret" }), @GridLayout.Row({ "authorizationEndpoint" }) })
 @GridLayout(names = ADVANCED, value = { @GridLayout.Row("timeout"), @GridLayout.Row("maxRetries") })
-@Documentation("Dynamics 365 CRM Connection class")
+@Documentation("Dynamics CRM connection")
 public class DynamicsCrmConnection implements Serializable {
 
     @Option

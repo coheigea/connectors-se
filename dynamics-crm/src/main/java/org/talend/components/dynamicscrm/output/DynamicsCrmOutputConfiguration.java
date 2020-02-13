@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -19,41 +19,52 @@ import java.util.List;
 
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
+import org.talend.sdk.component.api.configuration.condition.ActiveIfs;
+import org.talend.sdk.component.api.configuration.condition.ActiveIfs.Operator;
 import org.talend.sdk.component.api.configuration.constraint.Required;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "action" }), @GridLayout.Row({ "lookupMapping" }) })
-@GridLayout(names = ADVANCED,
-        value = { @GridLayout.Row("dataset"), @GridLayout.Row("emptyStringToNull"), @GridLayout.Row("ignoreNull") })
-@Documentation("TODO fill the documentation for this configuration")
+@GridLayout(names = ADVANCED, value = { @GridLayout.Row("dataset"), @GridLayout.Row("emptyStringToNull"),
+        @GridLayout.Row("ignoreNull") })
+@Documentation("Dynamics CRM output configuration")
 public class DynamicsCrmOutputConfiguration implements Serializable {
 
     @Option
-    @Documentation("TODO fill the documentation for this parameter")
+    @Documentation("Dynamics CRM dataset")
     private DynamicsCrmDataset dataset;
 
     @Option
-    @Documentation("")
+    @Documentation("Lookup fields mapping to entity set")
+    @ActiveIf(target = "action", value = "DELETE", negate = true)
     private List<LookupMapping> lookupMapping;
 
     @Option
     @Required
-    @Documentation("")
+    @Documentation("Action to be performed on data")
     private Action action = Action.INSERT;
 
     @Option
     @Required
-    @Documentation("")
+    @Documentation("Ignore null objects for insert and update operations")
     private boolean ignoreNull;
 
     @Option
     @Required
-    @Documentation("")
+    @Documentation("Convert empty strings to null for lookup properties")
     private boolean emptyStringToNull;
+
+    @Option
+    // @Structure(type = Type.IN)
+    @Documentation("Fields to write to CRM")
+    private List<String> columns;
 
     public enum Action {
         INSERT,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -57,13 +57,9 @@ public class UIActionService {
     }
 
     @Suggestions(ACTION_ENTITY_SETS)
-    public SuggestionValues entitySetsList(@Option final DynamicsCrmConnection connection)
-            throws AuthenticationException {
-        List<SuggestionValues.Item> items = service
-                .getEntitySetNames(connection)
-                .stream()
-                .map(s -> new SuggestionValues.Item(s, s))
-                .collect(Collectors.toList());
+    public SuggestionValues entitySetsList(@Option final DynamicsCrmConnection connection) throws AuthenticationException {
+        List<SuggestionValues.Item> items = service.getEntitySetNames(connection).stream()
+                .map(s -> new SuggestionValues.Item(s, s)).collect(Collectors.toList());
         return new SuggestionValues(true, items);
     }
 }

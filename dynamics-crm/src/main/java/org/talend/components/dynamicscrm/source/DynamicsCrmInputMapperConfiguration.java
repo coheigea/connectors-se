@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,29 +15,34 @@ package org.talend.components.dynamicscrm.source;
 import static org.talend.sdk.component.api.configuration.ui.layout.GridLayout.FormType.ADVANCED;
 
 import java.io.Serializable;
+import java.util.List;
 
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure;
+import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
 @Data
-@GridLayout({
-        // the generated layout put one configuration entry per line,
-        // customize it as much as needed
-        @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "filter" }) })
+@GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "filter" }) })
 @GridLayout(names = ADVANCED, value = { @GridLayout.Row("dataset") })
-@Documentation("TODO fill the documentation for this configuration")
+@Documentation("Dynamics CRM input configuration")
 public class DynamicsCrmInputMapperConfiguration implements Serializable {
 
     @Option
-    @Documentation("TODO fill the documentation for this parameter")
+    @Documentation("Dynamics CRM dataset")
     private DynamicsCrmDataset dataset;
 
     @Option
     @Documentation("Filter")
     private String filter;
+
+    @Option
+    // @Structure(type = Type.OUT)
+    @Documentation("Fields to get from CRM")
+    private List<String> columns;
 
 }

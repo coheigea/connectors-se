@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -20,15 +20,15 @@ import lombok.Data;
 
 @Data
 @GridLayout({ @GridLayout.Row({ "inputColumn", "referenceEntitySet" }) })
-@Documentation("TODO fill the documentation for this configuration")
+@Documentation("Lookup property mapping between field and referenced entity set")
 public class LookupMapping {
 
     @Option
-    @Documentation("")
+    @Documentation("Field")
     private String inputColumn;
 
     @Option
-    @Documentation("")
+    @Documentation("Referenced entity set")
     private String referenceEntitySet;
 
 }

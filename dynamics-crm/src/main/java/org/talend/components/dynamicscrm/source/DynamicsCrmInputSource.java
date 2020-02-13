@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,15 +13,21 @@
 package org.talend.components.dynamicscrm.source;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.naming.AuthenticationException;
 
+import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.commons.api.edm.Edm;
+import org.apache.olingo.commons.api.edm.EdmEntitySet;
 import org.talend.components.dynamicscrm.service.DynamicsCrmException;
 import org.talend.components.dynamicscrm.service.DynamicsCrmService;
 import org.talend.components.dynamicscrm.service.I18n;
+import org.talend.components.dynamicscrm.service.PropertyValidationData;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.input.Producer;
@@ -31,7 +37,7 @@ import org.talend.sdk.component.api.record.Schema;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 
-@Documentation("TODO fill the documentation for this source")
+@Documentation("Dynamics CRM input source")
 public class DynamicsCrmInputSource implements Serializable {
 
     private final DynamicsCrmInputMapperConfiguration configuration;
@@ -61,21 +67,34 @@ public class DynamicsCrmInputSource implements Serializable {
     @PostConstruct
     public void init() {
         try {
-            client = service
-                    .createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet());
+            client = service.createClient(configuration.getDataset().getDatastore(), configuration.getDataset().getEntitySet());
         } catch (AuthenticationException e) {
             throw new DynamicsCrmException(i18n.authenticationFailed(e.getMessage()));
         }
+
         metadata = service.getMetadata(client);
-        schema = service
-                .getSchemaFromMetadata(metadata, configuration.getDataset().getEntitySet(), null, builderFactory);
+        EdmEntitySet entitySet = metadata.getEntityContainer().getEntitySet(configuration.getDataset().getEntitySet());
+        Set<String> readableColumns = service
+                .getPropertiesValidationData(client, configuration.getDataset().getDatastore(),
+                        entitySet.getEntityType().getName())
+                .stream().filter(PropertyValidationData::isValidForRead).map(PropertyValidationData::getName)
+                .collect(Collectors.toSet());
+
+        List<String> columnNames = configuration.getColumns();
+        if (columnNames == null || columnNames.isEmpty()) {
+            columnNames = entitySet.getEntityType().getPropertyNames();
+        }
+        columnNames = columnNames.stream().filter(s -> readableColumns.contains(client.extractNavigationLinkName(s)))
+                .collect(Collectors.toList());
+        schema = service.getSchemaFromMetadata(metadata, configuration.getDataset().getEntitySet(), columnNames, builderFactory);
         iterator = service.getEntitySetIterator(client, service.createQueryOptionConfig(schema, configuration));
     }
 
     @Producer
     public Record next() {
         if (iterator.hasNext()) {
-            return service.createRecord(iterator.next(), schema, builderFactory);
+            ClientEntity next = iterator.next();
+            return service.createRecord(next, schema, builderFactory);
         }
         return null;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -66,11 +66,7 @@ public class DynamicsCrmService {
 
     public QueryOptionConfig createQueryOptionConfig(Schema schema, DynamicsCrmInputMapperConfiguration configuration) {
         QueryOptionConfig config = new QueryOptionConfig();
-        final String[] names = schema
-                .getEntries()
-                .stream()
-                .map(Schema.Entry::getName)
-                .collect(Collectors.toList())
+        final String[] names = schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())
                 .toArray(new String[0]);
         config.setReturnEntityProperties(names);
         if (configuration.getFilter() != null && !configuration.getFilter().isEmpty()) {
@@ -79,8 +75,7 @@ public class DynamicsCrmService {
         return config;
     }
 
-    public QueryOptionConfig createQueryOptionConfig(String[] fields,
-            DynamicsCrmInputMapperConfiguration configuration) {
+    public QueryOptionConfig createQueryOptionConfig(String[] fields, DynamicsCrmInputMapperConfiguration configuration) {
         QueryOptionConfig config = new QueryOptionConfig();
         config.setReturnEntityProperties(fields);
         if (configuration.getFilter() != null && !configuration.getFilter().isEmpty()) {
@@ -89,25 +84,21 @@ public class DynamicsCrmService {
         return config;
     }
 
-    public DynamicsCRMClient createClient(DynamicsCrmConnection connection, String entitySet)
-            throws AuthenticationException {
-        ClientConfiguration clientConfig_tMicrosoftCrmInput_1;
+    public DynamicsCRMClient createClient(DynamicsCrmConnection connection, String entitySet) throws AuthenticationException {
+        ClientConfiguration clientConfig;
         if (connection.getAppType() == DynamicsCrmConnection.AppType.Native) {
-            clientConfig_tMicrosoftCrmInput_1 = ClientConfigurationFactory
-                    .buildOAuthNativeClientConfiguration(connection.getClientId(), connection.getUsername(),
-                            connection.getPassword(), connection.getAuthorizationEndpoint());
+            clientConfig = ClientConfigurationFactory.buildOAuthNativeClientConfiguration(connection.getClientId(),
+                    connection.getUsername(), connection.getPassword(), connection.getAuthorizationEndpoint());
         } else {
-            clientConfig_tMicrosoftCrmInput_1 = ClientConfigurationFactory
-                    .buildOAuthWebClientConfiguration(connection.getClientId(), connection.getClientSecret(),
-                            connection.getUsername(), connection.getPassword(), connection.getAuthorizationEndpoint(),
-                            ClientConfiguration.WebAppPermission.DELEGATED);
+            clientConfig = ClientConfigurationFactory.buildOAuthWebClientConfiguration(connection.getClientId(),
+                    connection.getClientSecret(), connection.getUsername(), connection.getPassword(),
+                    connection.getAuthorizationEndpoint(), ClientConfiguration.WebAppPermission.DELEGATED);
         }
-        clientConfig_tMicrosoftCrmInput_1.setTimeout(connection.getTimeout());
-        clientConfig_tMicrosoftCrmInput_1.setMaxRetry(connection.getMaxRetries(), 1000);
-        clientConfig_tMicrosoftCrmInput_1.setReuseHttpClient(false);
-        DynamicsCRMClient client_tMicrosoftCrmInput_1 =
-                new DynamicsCRMClient(clientConfig_tMicrosoftCrmInput_1, connection.getServiceRootUrl(), entitySet);
-        return client_tMicrosoftCrmInput_1;
+        clientConfig.setTimeout(connection.getTimeout());
+        clientConfig.setMaxRetry(connection.getMaxRetries(), 1000);
+        clientConfig.setReuseHttpClient(false);
+        DynamicsCRMClient client = new DynamicsCRMClient(clientConfig, connection.getServiceRootUrl(), entitySet);
+        return client;
     }
 
     public List<String> getEntitySetNames(DynamicsCrmConnection connection) {
@@ -116,12 +107,8 @@ public class DynamicsCrmService {
             ODataEntitySetRequest<ClientEntitySet> request = client.createEndpointsNamesRequest();
             ODataRetrieveResponse<ClientEntitySet> response = request.execute();
             ClientEntitySet entitySet = response.getBody();
-            List<String> entitySetNames = entitySet
-                    .getEntities()
-                    .stream()
-                    .map(e -> e.getProperty("name").getValue().asPrimitive().toString())
+            return entitySet.getEntities().stream().map(e -> e.getProperty("name").getValue().asPrimitive().toString())
                     .collect(Collectors.toList());
-            return entitySetNames;
         } catch (AuthenticationException e) {
             throw new DynamicsCrmException(i18n.authenticationFailed(e.getMessage()));
         } catch (Exception e) {
@@ -153,13 +140,12 @@ public class DynamicsCrmService {
             ODataRetrieveResponse<Edm> metadataResponse = metadataRequest.execute();
             metadata = metadataResponse.getBody();
         } catch (Exception e) {
-            throw new DynamicsCrmException(i18n.metadataRetrieveFailed(e.getMessage()));
+            throw new DynamicsCrmException(i18n.metadataRetrieveFailed(e.getMessage()), e);
         }
         return metadata;
     }
 
-    private Schema parseSchema(Edm edm, String entitySetName, List<String> columnNames,
-            RecordBuilderFactory builderFactory) {
+    private Schema parseSchema(Edm edm, String entitySetName, List<String> columnNames, RecordBuilderFactory builderFactory) {
         EdmEntityContainer container = edm.getEntityContainer();
         EdmEntitySet entitySet = container.getEntitySet(entitySetName);
         EdmEntityType type = entitySet.getEntityType();
@@ -167,31 +153,20 @@ public class DynamicsCrmService {
             columnNames = type.getPropertyNames();
         }
         Schema.Builder schemaBuilder = builderFactory.newSchemaBuilder(Schema.Type.RECORD);
-        columnNames
-                .forEach(f -> schemaBuilder
-                        .withEntry(builderFactory
-                                .newEntryBuilder()
-                                .withName(f)
-                                .withType(getTckType((EdmProperty) type.getProperty(f), edm))
-                                .withElementSchema(getSubSchema(edm, (EdmProperty) type.getProperty(f), builderFactory))
-                                .withNullable(((EdmProperty) type.getProperty(f)).isNullable())
-                                .build()));
+        columnNames.forEach(f -> schemaBuilder.withEntry(
+                builderFactory.newEntryBuilder().withName(f).withType(getTckType((EdmProperty) type.getProperty(f), edm))
+                        .withElementSchema(getSubSchema(edm, (EdmProperty) type.getProperty(f), builderFactory))
+                        .withNullable(((EdmProperty) type.getProperty(f)).isNullable()).build()));
         return schemaBuilder.build();
     }
 
     private Schema parseSchema(Edm edm, EdmStructuredType type, RecordBuilderFactory builderFactory) {
         Schema.Builder schemaBuilder = builderFactory.newSchemaBuilder(Schema.Type.RECORD);
-        type
-                .getPropertyNames()
-                .stream()
-                .forEach(f -> schemaBuilder
-                        .withEntry(builderFactory
-                                .newEntryBuilder()
-                                .withName(f)
-                                .withType(getTckType((EdmProperty) type.getProperty(f), edm))
+        type.getPropertyNames()
+                .forEach(f -> schemaBuilder.withEntry(
+                        builderFactory.newEntryBuilder().withName(f).withType(getTckType((EdmProperty) type.getProperty(f), edm))
                                 .withElementSchema(getSubSchema(edm, (EdmProperty) type.getProperty(f), builderFactory))
-                                .withNullable(((EdmProperty) type.getProperty(f)).isNullable())
-                                .build()));
+                                .withNullable(((EdmProperty) type.getProperty(f)).isNullable()).build()));
         return schemaBuilder.build();
     }
 
@@ -244,21 +219,15 @@ public class DynamicsCrmService {
 
     public Record createRecord(ClientEntity entity, Schema schema, RecordBuilderFactory builderFactory) {
         final Record.Builder recordBuilder = builderFactory.newRecordBuilder(schema);
-        schema
-                .getEntries()
-                .stream()
-                .forEach(entry -> setValue(entity.getProperty(entry.getName()).getValue(), entry, recordBuilder,
-                        builderFactory));
+        schema.getEntries()
+                .forEach(entry -> setValue(entity.getProperty(entry.getName()).getValue(), entry, recordBuilder, builderFactory));
         return recordBuilder.build();
     }
 
     private Record createRecord(ClientComplexValue value, Schema schema, RecordBuilderFactory builderFactory) {
         final Record.Builder recordBuilder = builderFactory.newRecordBuilder(schema);
-        schema
-                .getEntries()
-                .stream()
-                .forEach(
-                        entry -> setValue(value.get(entry.getName()).getValue(), entry, recordBuilder, builderFactory));
+        schema.getEntries()
+                .forEach(entry -> setValue(value.get(entry.getName()).getValue(), entry, recordBuilder, builderFactory));
         return recordBuilder.build();
     }
 
@@ -314,9 +283,8 @@ public class DynamicsCrmService {
                 break;
             }
         } catch (Exception e) {
-            System.out
-                    .println(value.getTypeName() + ": " + entry.getType() + "(" + entry.getElementSchema() + ") = "
-                            + value.asPrimitive().toValue());
+            System.out.println(value.getTypeName() + ": " + entry.getType() + "(" + entry.getElementSchema() + ") = "
+                    + value.asPrimitive().toValue());
         }
     }
 
@@ -328,8 +296,7 @@ public class DynamicsCrmService {
         return getValue(value, schema.getType(), schema, builderFactory);
     }
 
-    private Object getValue(ClientValue value, Schema.Type type, Schema elementSchema,
-            RecordBuilderFactory builderFactory) {
+    private Object getValue(ClientValue value, Schema.Type type, Schema elementSchema, RecordBuilderFactory builderFactory) {
         if (value == null || (value.isPrimitive() && value.asPrimitive().toValue() == null)) {
             return null;
         }
@@ -363,9 +330,8 @@ public class DynamicsCrmService {
             } else {
                 EdmPrimitiveType binaryType = EdmPrimitiveTypeFactory.getInstance(EdmPrimitiveTypeKind.Binary);
                 try {
-                    bytesValue = binaryType
-                            .valueOfString(value.toString(), null, null, Constants.DEFAULT_PRECISION,
-                                    Constants.DEFAULT_SCALE, null, byte[].class);
+                    bytesValue = binaryType.valueOfString(value.toString(), null, null, Constants.DEFAULT_PRECISION,
+                            Constants.DEFAULT_SCALE, null, byte[].class);
                 } catch (EdmPrimitiveTypeException e) {
                     String errorMessage = i18n.failedParsingBytesValue(e.getMessage());
                     log.error(errorMessage);
@@ -386,26 +352,19 @@ public class DynamicsCrmService {
 
     protected URIBuilder createUriBuilderForValidProps(DynamicsCRMClient client, DynamicsCrmConnection datastore,
             String entitySetName) {
-        return client
-                .getClient()
-                .newURIBuilder(datastore.getServiceRootUrl())
-                .appendEntitySetSegment("EntityDefinitions")
-                .appendKeySegment(Collections.singletonMap("LogicalName", entitySetName))
-                .appendEntitySetSegment("Attributes")
+        return client.getClient().newURIBuilder(datastore.getServiceRootUrl()).appendEntitySetSegment("EntityDefinitions")
+                .appendKeySegment(Collections.singletonMap("LogicalName", entitySetName)).appendEntitySetSegment("Attributes")
                 .select("LogicalName", "IsValidForRead", "IsValidForUpdate", "IsValidForCreate");
     }
 
-    public List<PropertyValidationData> getPropertiesValidationData(DynamicsCRMClient client,
-            DynamicsCrmConnection datastore, String entitySetName) {
-        ODataEntitySetRequest<ClientEntitySet> validationDataRequest =
-                client.createRequest(createUriBuilderForValidProps(client, datastore, entitySetName));
+    public List<PropertyValidationData> getPropertiesValidationData(DynamicsCRMClient client, DynamicsCrmConnection datastore,
+            String logicalTypeName) {
+        ODataEntitySetRequest<ClientEntitySet> validationDataRequest = client
+                .createRequest(createUriBuilderForValidProps(client, datastore, logicalTypeName));
         ODataRetrieveResponse<ClientEntitySet> validationDataResponse = validationDataRequest.execute();
         ClientEntitySet validationDataSet = validationDataResponse.getBody();
-        List<PropertyValidationData> validationData = validationDataSet
-                .getEntities()
-                .stream()
-                .map(e -> new PropertyValidationData(
-                        (String) e.getProperty("LogicalName").getPrimitiveValue().toValue(),
+        List<PropertyValidationData> validationData = validationDataSet.getEntities().stream()
+                .map(e -> new PropertyValidationData((String) e.getProperty("LogicalName").getPrimitiveValue().toValue(),
                         (boolean) e.getProperty("IsValidForCreate").getPrimitiveValue().toValue(),
                         (boolean) e.getProperty("IsValidForUpdate").getPrimitiveValue().toValue(),
                         (boolean) e.getProperty("IsValidForRead").getPrimitiveValue().toValue()))

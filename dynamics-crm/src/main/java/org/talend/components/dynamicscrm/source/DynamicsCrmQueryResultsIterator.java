@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -55,7 +55,8 @@ public class DynamicsCrmQueryResultsIterator implements Iterator<ClientEntity> {
     public ClientEntity next() {
         if (entityIterator == null || (!entityIterator.hasNext() && nextPageUri != null)) {
             requestNext();
-        } else if (entityIterator != null && entityIterator.hasNext()) {
+        }
+        if (entityIterator.hasNext()) {
             return entityIterator.next();
         }
         return null;
