@@ -13,9 +13,11 @@
 package org.talend.components.extension;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.xbean.propertyeditor.PropertyEditorRegistry;
 import org.talend.sdk.component.api.component.MigrationHandler;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.service.configuration.LocalConfiguration;
+import org.talend.sdk.component.api.service.injector.Injector;
 import org.talend.sdk.component.container.Container;
 import org.talend.sdk.component.runtime.input.Mapper;
 import org.talend.sdk.component.runtime.manager.ComponentFamilyMeta;
@@ -30,10 +32,13 @@ import org.talend.sdk.component.runtime.manager.spi.ContainerListenerExtension;
 import org.talend.sdk.component.runtime.manager.util.Lazy;
 import org.talend.sdk.component.runtime.manager.xbean.registry.EnrichedPropertyEditorRegistry;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -58,49 +63,61 @@ public class AutoPollingExtension implements ContainerListenerExtension {
     }
 
     private void registerPollingMappers(final ContainerComponentRegistry registry, final Container container) {
-        log.info("2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX AutoPollingExtension.registerPollingMappers");
-        registry.getComponents().values().forEach(family -> {
-            final Map<String, ComponentFamilyMeta.PartitionMapperMeta> mappers = family.getPartitionMappers();
-            final List<ComponentFamilyMeta.PartitionMapperMeta> pollables = mappers.values().stream().filter(this::isPollable)
+        registry.getComponents().values().forEach(family -> {                                                                   // For each family
+            final Map<String, ComponentFamilyMeta.PartitionMapperMeta> mappers = family.getPartitionMappers();                  // We retrieve PartitionMappers (input connectors)
+            final List<ComponentFamilyMeta.PartitionMapperMeta> pollables = mappers.values().stream().filter(this::isPollable)  // And filter to retrieve only pollable partition mapper
                     .collect(Collectors.toList());
 
-            // pollables.stream().forEach(mapperMeta -> log.info("===> " + mapperMeta.getType().getName() + " / " +
-            // mapperMeta.getName() + " :: " + mapperMeta.toString()));
-
-            if (!pollables.isEmpty()) {
-                mappers.putAll(pollables.stream().map(p -> toPollable(p, container))
+            if (!pollables.isEmpty()) {                                                                                         // If any pollabke partition mapper
+                mappers.putAll(pollables.stream().map(p -> toPollable(p, container))                                            // We add/register a duplicate of the mapper transformed to a pollable
                         .collect(Collectors.toMap(ComponentFamilyMeta.PartitionMapperMeta::getName, Function.identity())));
             }
         });
     }
 
-    private boolean isPollable(final ComponentFamilyMeta.PartitionMapperMeta value) {
-        // return value.getType().isAnnotationPresent(Pollable.class);
+    /**
+     * @param partitionMapperMeta Meta information of a partition mapper.
+     * @return true if the given partition mapper is pollable if it is a batch input (infinite = false) and has the Pollable annotation.
+     */
+    private boolean isPollable(final ComponentFamilyMeta.PartitionMapperMeta partitionMapperMeta) {
+        Optional<Annotation> pollable = Stream.of(partitionMapperMeta.getType().getAnnotations()) //
+                .filter(a -> a.annotationType().equals(Pollable.class)) //
+                .findFirst();
 
-        // not infinite && Pollable
-        return true;
+        return !partitionMapperMeta.isInfinite() && pollable.isPresent();
     }
 
-    private ComponentFamilyMeta.PartitionMapperMeta toPollable(final ComponentFamilyMeta.PartitionMapperMeta meta,
+    private ComponentFamilyMeta.PartitionMapperMeta toPollable(final ComponentFamilyMeta.PartitionMapperMeta batchMetas,
                                                                final Container container) {
-        final String pollingName = meta.getName() + "Polling";
-        final boolean infinite = true;
+        final String pollingName = batchMetas.getName() + "Polling"; // Rename the duplicated mapper to namePolling
+        final boolean infinite = true; // Polling connectors are infinite = true
 
-        log.info("XXXXX Clone : change name " + meta.getName() + " -> " + pollingName);
+        final Map<Class<?>, Object> services = container.get(ComponentManager.AllServices.class).getServices();
+        final LocalConfiguration localConfig = LocalConfiguration.class.cast(services.get(LocalConfiguration.class));
+        final Injector injector = Injector.class.cast(services.get(Injector.class));
+        final PropertyEditorRegistry propertyEditorRegistry = PropertyEditorRegistry.class.cast(services.get(PropertyEditorRegistry.class));
+        final AtomicReference<List<ParameterMeta>> metas = new AtomicReference<>();
+        final Supplier<List<ParameterMeta>> aggregatedMetasSupplier = Lazy.lazy(() -> {
+            final List<ParameterMeta> originalMetas = batchMetas.getParameterMetas().get();
 
-        final Supplier<List<ParameterMeta>> batchMetasSupplier = Lazy.lazy(() -> {
-
-            final LocalConfiguration localConfig = LocalConfiguration.class.cast(container.get(ComponentManager.AllServices.class).getServices().get(LocalConfiguration.class));
-            final List<ParameterMeta> originalMetas = meta.getParameterMetas().get();
             final List<ParameterMeta> root = originalMetas.stream()
-                    .filter(it -> !it.getName().startsWith("$"))
+                    .filter(it -> !it.getName().startsWith("$"))  // root configuration should be the only metadata which doesn't start by '$'
                     .collect(toList());
-            if (root.size() != 1) {
-                throw new IllegalArgumentException("Didn't find root configuration object for: " + meta.getName());
+            if (root.size() < 1) {
+                throw new IllegalArgumentException("Can't find any root configuration object for: " + batchMetas.getName());
+            }
+            else if(root.size() > 1){
+                throw new IllegalArgumentException("Several root configuration object have been found for: " + batchMetas.getName());
             }
 
             final String rootPath = root.iterator().next().getPath();
-            final List<ParameterMeta> metas = getPoolingRawMetas(localConfig).stream()
+
+            List<ParameterMeta> parameterMetas = metas.get();
+            if (parameterMetas == null) {
+                parameterMetas = getPoolingRawMetas(localConfig, propertyEditorRegistry, injector, batchMetas.getType().getPackage());
+                metas.compareAndSet(null, parameterMetas);
+            }
+            final List<ParameterMeta> poolingMetas = parameterMetas.stream()
                     .map(pollingMeta -> new ParameterMeta(
                             pollingMeta.getSource(),
                             pollingMeta.getJavaType(),
@@ -113,7 +130,8 @@ public class AutoPollingExtension implements ContainerListenerExtension {
                             pollingMeta.getMetadata(),
                             pollingMeta.isLogMissingResourceBundle()))
                     .collect(toList());
-            return originalMetas.stream()
+
+            return originalMetas.stream()  // Return a copy of metas of original connector ...
                     .map(it -> it == root ?
                             new ParameterMeta(
                                     it.getSource(),
@@ -122,16 +140,16 @@ public class AutoPollingExtension implements ContainerListenerExtension {
                                     it.getPath(),
                                     it.getName(),
                                     it.getI18nPackages(),
-                                    Stream.concat(it.getNestedParameters().stream(), metas.stream())
+                                    Stream.concat(it.getNestedParameters().stream(), poolingMetas.stream()) // ... agregated with the polling ones
                                             .collect(toList()),
                                     it.getProposals(),
                                     it.getMetadata(),
                                     it.isLogMissingResourceBundle()) :
                             it)
                     .collect(toList());
-        });
+        }); // And aggregatedMetasSupplier
 
-        final int version = meta.getVersion(); // todo
+        final int version = batchMetas.getVersion(); // todo
         final Function<Map<String, String>, Mapper> instantiator = config -> {
             final String pollingConfigPrefix = "configuration.internal_polling_configuration";
             final Map<String, String> pollingConfig = config.entrySet().stream()
@@ -139,17 +157,19 @@ public class AutoPollingExtension implements ContainerListenerExtension {
                     .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
             final Map<String, String> batchConfig = new HashMap<>(config);
             batchConfig.keySet().removeAll(pollingConfig.keySet());
-            final Mapper batchMapper = meta.getInstantiator().apply(batchConfig);
+            final Mapper batchMapper = batchMetas.getInstantiator().apply(batchConfig);
 
-            // todo: getPoolingRawMetas ne devrait être appelr qu'une seule fois
-            final LocalConfiguration localConfig = LocalConfiguration.class.cast(container.get(ComponentManager.AllServices.class).getServices().get(LocalConfiguration.class));
-            final List<ParameterMeta> pollingMetas = getPoolingRawMetas(localConfig);
+            List<ParameterMeta> pollingMetas = metas.get();
+            if (pollingMetas == null) {
+                pollingMetas = getPoolingRawMetas(localConfig, propertyEditorRegistry, injector, batchMetas.getType().getPackage());
+                metas.compareAndSet(null, pollingMetas);
+            }
             final EnrichedPropertyEditorRegistry registry = new EnrichedPropertyEditorRegistry();
             final Function<Map<String, String>, Object[]> pollingConfigFactory;
             try {
                 pollingConfigFactory = new ReflectionService(new ParameterModelService(registry), registry)
                         .parameterFactory(AutoPollingExtension.class.getMethod("methodWithPollingConfigurationOption", PollingConfiguration.class),
-                                container.get(ComponentManager.AllServices.class).getServices(),
+                                services,
                                 pollingMetas);
             } catch (final NoSuchMethodException e) { // unlikely
                 throw new IllegalStateException(e);
@@ -162,17 +182,17 @@ public class AutoPollingExtension implements ContainerListenerExtension {
         //todo: extraire tous les new XXXXXService
         final MigrationHandler pollingMigrationHandler = new MigrationHandlerFactory(new ReflectionService(new ParameterModelService(new EnrichedPropertyEditorRegistry()), new EnrichedPropertyEditorRegistry()))
                 .findMigrationHandler(null/*polling metas*/, PollingConfiguration.class, container.get(ComponentManager.AllServices.class));
-        final Supplier<MigrationHandler> migrationHandler = meta.getMigrationHandler(); // todo: split the configuration in polling and batch to have 2 migrations as for the instantiator
+        final Supplier<MigrationHandler> migrationHandler = batchMetas.getMigrationHandler(); // todo: split the configuration in polling and batch to have 2 migrations as for the instantiator
 
-        ComponentFamilyMeta.PartitionMapperMeta clone = new ComponentFamilyMeta.PartitionMapperMeta(meta.getParent(),
-                meta.getName() + "Polling", meta.getIcon(), version, meta.getType(), batchMetasSupplier,
+        ComponentFamilyMeta.PartitionMapperMeta clone = new ComponentFamilyMeta.PartitionMapperMeta(batchMetas.getParent(),
+                pollingName, batchMetas.getIcon(), version, batchMetas.getType(), aggregatedMetasSupplier,
                 instantiator, Lazy.lazy(() -> (MigrationHandler) (incomingVersion, incomingData) -> {
-                    // migrate batch
-                    // migrate polling
-                    // merge config
-                    // todo: return mergedConfig;
-                    return incomingData;
-                }), meta.isValidated(), infinite) {
+            // migrate batch
+            // migrate polling
+            // merge config
+            // todo: return mergedConfig;
+            return incomingData;
+        }), batchMetas.isValidated(), infinite) {
             // Just work around since constructor is protected
             // Change name
             // force infinite=true
@@ -181,16 +201,41 @@ public class AutoPollingExtension implements ContainerListenerExtension {
         return clone;
     }
 
-    private List<ParameterMeta> getPoolingRawMetas(final LocalConfiguration localConfig) {
+    /**
+     * Return metadata of the @option of the method methodWithPollingConfigurationOption.
+     * It means the metadata of the specific configuration of the polling.
+     * @param localConfig
+     * @return
+     */
+    private List<ParameterMeta> getPoolingRawMetas(final LocalConfiguration localConfig, final PropertyEditorRegistry propertyEditorRegistry,
+                                                   final Injector injector, final Package i18nPackage) {
         try {
-            return new ParameterModelService(new EnrichedPropertyEditorRegistry()) // todo: maybe use ComponentManager.instance().getParameterModelService()
-                    .buildParameterMetas(AutoPollingExtension.class.getMethod("methodWithPollingConfigurationOption", PollingConfiguration.class),
-                            PollingConfiguration.class.getPackage().getName(), new BaseParameterEnricher.Context(localConfig));
-        } catch (final NoSuchMethodException e) { // unlikely, means methodALacon is not there
+            final ParameterModelService pms = get(get(injector, "reflectionService", ReflectionService.class), "parameterModelService", ParameterModelService.class);
+            return pms.buildParameterMetas(
+                                    AutoPollingExtension.class.getMethod("methodWithPollingConfigurationOption", PollingConfiguration.class),
+                    i18nPackage == null ? "" : i18nPackage.getName(),
+                                    new BaseParameterEnricher.Context(localConfig)
+                            );
+        } catch (final Exception e) {
+            // Means that methodWithPollingConfigurationOption has not been found
             throw new IllegalStateException(e);
         }
     }
 
+    private <T> T get(final Object from, final String name, final Class<T> type) {
+        try {
+            final Field reflectionService = from.getClass().getDeclaredField(name);
+            if (!reflectionService.isAccessible()) {
+                reflectionService.setAccessible(true);
+            }
+            return type.cast(reflectionService.get(from));
+        } catch (final Exception e) {
+            throw new IllegalStateException("Incompatible component runtime manager", e);
+        }
+    }
+
+
+    // This method exists only to have the @Option with the PollingConfiguration class
     public void methodWithPollingConfigurationOption(@Option("internal_polling_configuration") final PollingConfiguration pollingConfiguration) {
         // no-op
     }

@@ -6,6 +6,8 @@ import java.io.Serializable;
 
 public class PollingConfiguration implements Serializable {
 
+    public final static int version = 1;
+
     @Option
     private Integer delay;
 
