@@ -29,7 +29,10 @@ import org.apache.olingo.client.api.domain.ClientComplexValue;
 import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.client.api.domain.ClientEntitySet;
 import org.apache.olingo.client.api.domain.ClientValue;
+import org.apache.olingo.client.api.uri.FilterFactory;
 import org.apache.olingo.client.api.uri.URIBuilder;
+import org.apache.olingo.client.api.uri.URIFilter;
+import org.apache.olingo.client.core.uri.FilterFactoryImpl;
 import org.apache.olingo.commons.api.Constants;
 import org.apache.olingo.commons.api.edm.Edm;
 import org.apache.olingo.commons.api.edm.EdmEntityContainer;
@@ -45,7 +48,11 @@ import org.apache.olingo.commons.api.edm.constants.EdmTypeKind;
 import org.apache.olingo.commons.core.edm.primitivetype.EdmPrimitiveTypeFactory;
 import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
 import org.talend.components.dynamicscrm.source.DynamicsCrmInputMapperConfiguration;
+import org.talend.components.dynamicscrm.source.DynamicsCrmInputMapperConfiguration.Operator;
 import org.talend.components.dynamicscrm.source.DynamicsCrmQueryResultsIterator;
+import org.talend.components.dynamicscrm.source.FilterCondition;
+import org.talend.components.dynamicscrm.source.OrderByCondition;
+import org.talend.components.dynamicscrm.source.OrderByCondition.Order;
 import org.talend.ms.crm.odata.ClientConfiguration;
 import org.talend.ms.crm.odata.ClientConfigurationFactory;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
@@ -69,10 +76,86 @@ public class DynamicsCrmService {
         final String[] names = schema.getEntries().stream().map(Schema.Entry::getName).collect(Collectors.toList())
                 .toArray(new String[0]);
         config.setReturnEntityProperties(names);
-        if (configuration.getFilter() != null && !configuration.getFilter().isEmpty()) {
-            config.setFilter(configuration.getFilter());
+        String filterString = getFilterQuery(configuration);
+        if (filterString != null) {
+            config.setFilter(filterString);
+        }
+        String orderByString = getOrderByQuery(configuration);
+        if (orderByString != null) {
+            config.setOrderBy(orderByString);
         }
         return config;
+    }
+
+    public String getOrderByQuery(DynamicsCrmInputMapperConfiguration configuration) {
+        if (configuration.getOrderByConditionsList() != null && !configuration.getOrderByConditionsList().isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (OrderByCondition orderBy : configuration.getOrderByConditionsList()) {
+                if (sb.length() > 0) {
+                    sb.append(",");
+                }
+                if (orderBy.getField() != null && !orderBy.getField().isEmpty()) {
+                    sb.append((orderBy.getOrder() == Order.DESC) ? orderBy.getField() + " desc" : orderBy.getField());
+                }
+            }
+            String result = sb.toString();
+            return result.isEmpty() ? null : result;
+        }
+        return null;
+    }
+
+    public String getFilterQuery(DynamicsCrmInputMapperConfiguration configuration) {
+        if (configuration.isCustomFilter() && configuration.getFilter() != null && !configuration.getFilter().isEmpty()) {
+            return configuration.getFilter();
+        } else if (!configuration.isCustomFilter() && configuration.getFilterConditions() != null
+                && !configuration.getFilterConditions().isEmpty()) {
+            return convertFilterConditionsTableToString(configuration.getFilterConditions(), configuration.getOperator());
+        }
+        return null;
+    }
+
+    public String convertFilterConditionsTableToString(List<FilterCondition> filterConditions, Operator operator) {
+        FilterFactory filterFactory = new FilterFactoryImpl();
+        List<URIFilter> uriFilters = new ArrayList<>();
+        for (FilterCondition condition : filterConditions) {
+            switch (condition.getFilterOperator()) {
+            case EQUAL:
+                uriFilters.add(filterFactory.eq(condition.getField(), condition.getValue()));
+                break;
+            case NOTEQUAL:
+                uriFilters.add(filterFactory.ne(condition.getField(), condition.getValue()));
+                break;
+            case GREATER_THAN:
+                uriFilters.add(filterFactory.gt(condition.getField(), condition.getValue()));
+                break;
+            case GREATER_OR_EQUAL:
+                uriFilters.add(filterFactory.ge(condition.getField(), condition.getValue()));
+                break;
+            case LESS_THAN:
+                uriFilters.add(filterFactory.lt(condition.getField(), condition.getValue()));
+                break;
+            case LESS_OR_EQUAL:
+                uriFilters.add(filterFactory.le(condition.getField(), condition.getValue()));
+                break;
+            default:
+                throw new IllegalArgumentException("Usupported condition operator:" + condition.getFilterOperator());
+            }
+
+        }
+        String operatorString = null;
+        if (operator == null) {
+            operatorString = Operator.AND.toString().toLowerCase();
+        } else {
+            operatorString = operator.toString().toLowerCase();
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < uriFilters.size(); i++) {
+            if (i != 0) {
+                sb.append(" ").append(operatorString).append(" ");
+            }
+            sb.append(uriFilters.get(i).build());
+        }
+        return sb.toString();
     }
 
     public QueryOptionConfig createQueryOptionConfig(String[] fields, DynamicsCrmInputMapperConfiguration configuration) {
@@ -244,47 +327,42 @@ public class DynamicsCrmService {
         Schema.Type type = entry.getType();
         entryBuilder.withNullable(entry.isNullable()).withName(entry.getName()).withType(type);
 
-        try {
-            switch (type) {
-            case ARRAY:
-                Schema elementSchema = entry.getElementSchema();
-                entryBuilder.withElementSchema(elementSchema);
-                Collection<Object> objects = (Collection<Object>) convertedValue;
-                recordBuilder.withArray(entryBuilder.build(), objects);
-                break;
-            case INT:
-                recordBuilder.withInt(entryBuilder.build(), (Integer) convertedValue);
-                break;
-            case LONG:
-                recordBuilder.withLong(entryBuilder.build(), (Long) convertedValue);
-                break;
-            case BOOLEAN:
-                recordBuilder.withBoolean(entryBuilder.build(), (Boolean) convertedValue);
-                break;
-            case FLOAT:
-                recordBuilder.withFloat(entryBuilder.build(), (Float) convertedValue);
-                break;
-            case DOUBLE:
-                recordBuilder.withDouble(entryBuilder.build(), (Double) convertedValue);
-                break;
-            case BYTES:
-                recordBuilder.withBytes(entryBuilder.build(), (byte[]) convertedValue);
-                break;
-            case DATETIME:
-                recordBuilder.withDateTime(entryBuilder.build(), (Timestamp) convertedValue);
-                break;
-            case RECORD:
-                entryBuilder.withElementSchema(entry.getElementSchema());
-                recordBuilder.withRecord(entryBuilder.build(), (Record) convertedValue);
-                break;
-            case STRING:
-            default:
-                recordBuilder.withString(entryBuilder.build(), (String) convertedValue);
-                break;
-            }
-        } catch (Exception e) {
-            System.out.println(value.getTypeName() + ": " + entry.getType() + "(" + entry.getElementSchema() + ") = "
-                    + value.asPrimitive().toValue());
+        switch (type) {
+        case ARRAY:
+            Schema elementSchema = entry.getElementSchema();
+            entryBuilder.withElementSchema(elementSchema);
+            Collection<Object> objects = (Collection<Object>) convertedValue;
+            recordBuilder.withArray(entryBuilder.build(), objects);
+            break;
+        case INT:
+            recordBuilder.withInt(entryBuilder.build(), (Integer) convertedValue);
+            break;
+        case LONG:
+            recordBuilder.withLong(entryBuilder.build(), (Long) convertedValue);
+            break;
+        case BOOLEAN:
+            recordBuilder.withBoolean(entryBuilder.build(), (Boolean) convertedValue);
+            break;
+        case FLOAT:
+            recordBuilder.withFloat(entryBuilder.build(), (Float) convertedValue);
+            break;
+        case DOUBLE:
+            recordBuilder.withDouble(entryBuilder.build(), (Double) convertedValue);
+            break;
+        case BYTES:
+            recordBuilder.withBytes(entryBuilder.build(), (byte[]) convertedValue);
+            break;
+        case DATETIME:
+            recordBuilder.withDateTime(entryBuilder.build(), (Timestamp) convertedValue);
+            break;
+        case RECORD:
+            entryBuilder.withElementSchema(entry.getElementSchema());
+            recordBuilder.withRecord(entryBuilder.build(), (Record) convertedValue);
+            break;
+        case STRING:
+        default:
+            recordBuilder.withString(entryBuilder.build(), (String) convertedValue);
+            break;
         }
     }
 

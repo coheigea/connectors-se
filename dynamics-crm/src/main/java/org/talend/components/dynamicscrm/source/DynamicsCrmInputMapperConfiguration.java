@@ -19,15 +19,15 @@ import java.util.List;
 
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
-import org.talend.sdk.component.api.configuration.ui.widget.Structure;
-import org.talend.sdk.component.api.configuration.ui.widget.Structure.Type;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import lombok.Data;
 
 @Data
-@GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "filter" }) })
+@GridLayout({ @GridLayout.Row({ "dataset" }), @GridLayout.Row({ "customFilter" }), @GridLayout.Row({ "operator" }),
+        @GridLayout.Row({ "filterConditions" }), @GridLayout.Row({ "filter" }), @GridLayout.Row({ "orderByConditionsList" }) })
 @GridLayout(names = ADVANCED, value = { @GridLayout.Row("dataset") })
 @Documentation("Dynamics CRM input configuration")
 public class DynamicsCrmInputMapperConfiguration implements Serializable {
@@ -37,12 +37,36 @@ public class DynamicsCrmInputMapperConfiguration implements Serializable {
     private DynamicsCrmDataset dataset;
 
     @Option
+    @Documentation("Use advanced filter string instead of filter conditions table")
+    private boolean customFilter = false;
+
+    @Option
+    @ActiveIf(target = "customFilter", value = "false")
+    @Documentation("Logical operator used to combine conditions")
+    private Operator operator = Operator.AND;
+
+    @Option
+    @ActiveIf(target = "customFilter", value = "false")
+    @Documentation("Filter conditions")
+    private List<FilterCondition> filterConditions;
+
+    @Option
+    @ActiveIf(target = "customFilter", value = "true")
     @Documentation("Filter")
     private String filter;
+
+    @Option
+    @Documentation("Sorting conditions")
+    private List<OrderByCondition> orderByConditionsList;
 
     @Option
     // @Structure(type = Type.OUT)
     @Documentation("Fields to get from CRM")
     private List<String> columns;
+
+    public enum Operator {
+        AND,
+        OR;
+    }
 
 }

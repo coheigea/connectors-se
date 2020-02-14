@@ -16,9 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.talend.sdk.component.junit.SimpleFactory.configurationByExample;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.naming.AuthenticationException;
+import javax.naming.ServiceUnavailableException;
 
 import org.apache.olingo.client.api.domain.ClientEntity;
 import org.apache.olingo.client.api.uri.FilterFactory;
@@ -34,13 +36,8 @@ import org.talend.ms.crm.odata.ClientConfiguration.WebAppPermission;
 import org.talend.ms.crm.odata.ClientConfigurationFactory;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.record.Record;
-import org.talend.sdk.component.api.service.Service;
-import org.talend.sdk.component.api.service.record.RecordBuilderFactory;
 import org.talend.sdk.component.junit5.WithComponents;
 import org.talend.sdk.component.runtime.manager.chain.Job;
-
-import javax.naming.AuthenticationException;
-import javax.naming.ServiceUnavailableException;
 
 @WithComponents("org.talend.components.dynamicscrm")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -70,6 +67,7 @@ public class DynamicsCrmInputMapperTestIT extends DynamicsCrmTestBase {
         configuration.setColumns(Arrays.asList("annualincome", "assistantname", "business2", "callback", "childrensnames",
                 "company", "creditonhold"));
         FilterFactory filterFactory = new FilterFactoryImpl();
+        configuration.setCustomFilter(true);
         configuration.setFilter(filterFactory.eq("company", company).build());
 
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
