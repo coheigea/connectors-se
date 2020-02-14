@@ -50,6 +50,7 @@
         <module>bigquery</module>
         <module>workday</module>
         <module>pubsub</module>
+        <module>google-storage</module>
     </modules>
 
     <scm>
