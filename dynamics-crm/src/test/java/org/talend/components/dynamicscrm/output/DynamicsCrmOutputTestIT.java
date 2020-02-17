@@ -70,7 +70,9 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         configuration.setEmptyStringToNull(true);
         configuration.setAction(Action.INSERT);
         configuration.setColumns(Arrays.asList("annualincome", "assistantname", "business2", "callback", "childrensnames",
-                "company", "creditonhold"));
+                "company", "creditonhold", "_transactioncurrencyid_value"));
+
+        configuration.setLookupMapping(Arrays.asList(new LookupMapping("_transactioncurrencyid_value", "transactioncurrencies")));
 
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         List<Record> testRecords = Collections.singletonList(testRecord);
@@ -94,6 +96,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         assertEquals("callback", entity.getProperty("callback").getPrimitiveValue().toString());
         assertEquals("childrensnames", entity.getProperty("childrensnames").getPrimitiveValue().toString());
         assertEquals(company, entity.getProperty("company").getPrimitiveValue().toString());
+        assertEquals("dca1714c-6d1a-e311-a5fb-b4b52f67b688", entity.getProperty("_transactioncurrencyid_value").getPrimitiveValue().toString());
     }
 
     @Test
@@ -121,7 +124,9 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         configuration.setEmptyStringToNull(true);
         configuration.setAction(Action.UPDATE);
         configuration.setColumns(Arrays.asList("annualincome", "assistantname", "business2", "callback", "childrensnames",
-                "company", "creditonhold"));
+                "company", "creditonhold", "_transactioncurrencyid_value"));
+
+        configuration.setLookupMapping(Arrays.asList(new LookupMapping("_transactioncurrencyid_value", "transactioncurrencies")));
 
         final String config = configurationByExample().forInstance(configuration).configured().toQueryString();
         List<Record> testRecords = Collections.singletonList(testRecord);
@@ -145,6 +150,7 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         assertEquals("callback", resultEntity.getProperty("callback").getPrimitiveValue().toString());
         assertEquals("childrensnames", resultEntity.getProperty("childrensnames").getPrimitiveValue().toString());
         assertEquals(company, resultEntity.getProperty("company").getPrimitiveValue().toString());
+        assertEquals("dca1714c-6d1a-e311-a5fb-b4b52f67b688", resultEntity.getProperty("_transactioncurrencyid_value").getPrimitiveValue().toString());
     }
 
     @Test
