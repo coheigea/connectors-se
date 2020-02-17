@@ -153,8 +153,7 @@ public abstract class DynamicsCrmTestBase {
         Record record = builderFactory.newRecordBuilder(schema).withFloat("annualincome", 2.0f)
                 .withString("assistantname", "assistant").withString("business2", "business2").withString("callback", "callback")
                 .withString("childrensnames", "childrensnames").withString("company", company).withBoolean("creditonhold", false)
-                .withString("_transactioncurrencyid_value", "dca1714c-6d1a-e311-a5fb-b4b52f67b688")
-                .build();
+                .withString("_transactioncurrencyid_value", "dca1714c-6d1a-e311-a5fb-b4b52f67b688").build();
         return record;
     }
 

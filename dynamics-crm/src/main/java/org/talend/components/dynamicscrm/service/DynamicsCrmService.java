@@ -158,15 +158,6 @@ public class DynamicsCrmService {
         return sb.toString();
     }
 
-    public QueryOptionConfig createQueryOptionConfig(String[] fields, DynamicsCrmInputMapperConfiguration configuration) {
-        QueryOptionConfig config = new QueryOptionConfig();
-        config.setReturnEntityProperties(fields);
-        if (configuration.getFilter() != null && !configuration.getFilter().isEmpty()) {
-            config.setFilter(configuration.getFilter());
-        }
-        return config;
-    }
-
     public DynamicsCRMClient createClient(DynamicsCrmConnection connection, String entitySet) throws AuthenticationException {
         ClientConfiguration clientConfig;
         if (connection.getAppType() == DynamicsCrmConnection.AppType.Native) {

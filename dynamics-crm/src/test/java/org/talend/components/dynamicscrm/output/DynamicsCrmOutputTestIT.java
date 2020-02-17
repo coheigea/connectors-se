@@ -96,7 +96,8 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         assertEquals("callback", entity.getProperty("callback").getPrimitiveValue().toString());
         assertEquals("childrensnames", entity.getProperty("childrensnames").getPrimitiveValue().toString());
         assertEquals(company, entity.getProperty("company").getPrimitiveValue().toString());
-        assertEquals("dca1714c-6d1a-e311-a5fb-b4b52f67b688", entity.getProperty("_transactioncurrencyid_value").getPrimitiveValue().toString());
+        assertEquals("dca1714c-6d1a-e311-a5fb-b4b52f67b688",
+                entity.getProperty("_transactioncurrencyid_value").getPrimitiveValue().toString());
     }
 
     @Test
@@ -150,7 +151,8 @@ public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
         assertEquals("callback", resultEntity.getProperty("callback").getPrimitiveValue().toString());
         assertEquals("childrensnames", resultEntity.getProperty("childrensnames").getPrimitiveValue().toString());
         assertEquals(company, resultEntity.getProperty("company").getPrimitiveValue().toString());
-        assertEquals("dca1714c-6d1a-e311-a5fb-b4b52f67b688", resultEntity.getProperty("_transactioncurrencyid_value").getPrimitiveValue().toString());
+        assertEquals("dca1714c-6d1a-e311-a5fb-b4b52f67b688",
+                resultEntity.getProperty("_transactioncurrencyid_value").getPrimitiveValue().toString());
     }
 
     @Test
