@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,6 +16,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.service.RestService;
+import org.talend.components.rest.virtual.ComplexRestConfiguration;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
@@ -39,8 +40,8 @@ public class RestOutput implements Serializable {
 
     private final RestService client;
 
-    public RestOutput(@Option("configuration") final RequestConfig config, final RestService client) {
-        this.config = config;
+    public RestOutput(@Option("configuration") final ComplexRestConfiguration config, final RestService client) {
+        this.config = config.getDataset().getRestConfiguration();
         this.client = client;
     }
 

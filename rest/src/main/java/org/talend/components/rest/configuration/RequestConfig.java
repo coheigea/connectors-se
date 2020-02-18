@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -35,7 +35,7 @@ public class RequestConfig implements Serializable {
     private Dataset dataset;
 
     public Map<String, String> pathParams() {
-        if (!getDataset().getHasPathParams() || getDataset().getPathParams() == null) {
+        if (!getDataset().isHasPathParams() || getDataset().getPathParams() == null) {
             return Collections.emptyMap();
         }
 
@@ -43,7 +43,7 @@ public class RequestConfig implements Serializable {
     }
 
     public Map<String, String> queryParams() {
-        if (!getDataset().getHasQueryParams() || getDataset().getQueryParams() == null) {
+        if (!getDataset().isHasQueryParams() || getDataset().getQueryParams() == null) {
             return Collections.emptyMap();
         }
 
@@ -51,7 +51,7 @@ public class RequestConfig implements Serializable {
     }
 
     public Map<String, String> headers() {
-        if (!getDataset().getHasHeaders() || getDataset().getHeaders() == null) {
+        if (!getDataset().isHasHeaders() || getDataset().getHeaders() == null) {
             return Collections.emptyMap();
         }
 

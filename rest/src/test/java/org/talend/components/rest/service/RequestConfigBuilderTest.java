@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -18,6 +18,9 @@ import org.talend.components.rest.configuration.RequestBody;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.configuration.auth.Authentication;
 import org.talend.components.rest.configuration.auth.Authorization;
+import org.talend.components.rest.processor.JSonExtractorConfiguration;
+import org.talend.components.rest.virtual.ComplexRestConfiguration;
+import org.talend.components.rest.virtual.ComplexRestDataset;
 
 import java.util.Collections;
 
@@ -26,7 +29,7 @@ public class RequestConfigBuilderTest {
     private RequestConfigBuilderTest() {
     }
 
-    public static RequestConfig getEmptyRequestConfig() {
+    public static ComplexRestConfiguration getEmptyRequestConfig() {
         RequestConfig config = new RequestConfig();
 
         Authentication authent = new Authentication();
@@ -53,7 +56,16 @@ public class RequestConfigBuilderTest {
 
         config.setDataset(dataset);
 
-        return config;
+        ComplexRestConfiguration complexRestConfiguration = new ComplexRestConfiguration();
+
+        ComplexRestDataset complexRestDataset = new ComplexRestDataset();
+        complexRestDataset.setRestConfiguration(config);
+        complexRestDataset.getRestConfiguration().getDataset().setCompletePayload(true); // setComputeBody(false);
+        complexRestDataset.setJSonExtractorConfiguration(new JSonExtractorConfiguration());
+
+        complexRestConfiguration.setDataset(complexRestDataset);
+
+        return complexRestConfiguration;
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
 package org.talend.components.rest.source;
 
 import org.talend.components.rest.configuration.RequestConfig;
+import org.talend.components.rest.service.CompletePayload;
 import org.talend.components.rest.service.RestService;
 import org.talend.sdk.component.api.component.Icon;
 import org.talend.sdk.component.api.component.Version;
@@ -24,10 +25,10 @@ import org.talend.sdk.component.api.record.Record;
 
 import java.io.Serializable;
 
-@Version(1)
-@Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")
-@Emitter(name = "Input")
-@Documentation("Http REST Input component")
+// @Version(1)
+// @Icon(value = Icon.IconType.CUSTOM, custom = "talend-rest")
+// @Emitter(name = "Input")
+// @Documentation("Http REST Input component")
 public class RestEmitter implements Serializable {
 
     private final RequestConfig config;
@@ -42,10 +43,10 @@ public class RestEmitter implements Serializable {
     }
 
     @Producer
-    public Record next() {
+    public CompletePayload next() {
         if (!done) {
             done = true;
-            return client.execute(config);
+            return client.buildFixedRecord(client.execute(config));
         }
 
         return null;
