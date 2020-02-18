@@ -103,8 +103,12 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
             }
         }
 
+        Map<String, Entry> targetSchema = new HashMap<>();
+        schema.getEntries().forEach(entry -> targetSchema.put(entry.getName(), entry));
+
         for (Entry entry : record.getSchema().getEntries()) {
-            if (!schema.getEntries().stream().anyMatch(tempEntry -> entry.getName().equals(tempEntry.getName()))) {
+            Entry targetEntry = targetSchema.get(entry.getName());
+            if (targetEntry == null) {
                 // TODO: Add logging that entry is not present in runtime schema
                 continue;
             }
@@ -115,7 +119,17 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
                 continue;
             }
 
-            Object value = record.get(fieldDesc.getRecordValueType(), entry.getName());
+            Object value;
+            // int -1 is null ZonedDateTime
+            if (targetEntry.getType() == Schema.Type.DATETIME && entry.getType() == Schema.Type.INT
+                    && record.getInt(entry.getName()) == -1) {
+                value = null;
+                // boolean can be coded as string
+            } else if (targetEntry.getType() == Schema.Type.BOOLEAN && entry.getType() == Schema.Type.STRING) {
+                value = record.getOptionalString(entry.getName()).map(Boolean::valueOf).orElse(null);
+            } else {
+                value = record.get(fieldDesc.getRecordValueType(), entry.getName());
+            }
             writeField(nsObject, fieldDesc, customFieldMap, nullFieldNames, value);
         }
 
