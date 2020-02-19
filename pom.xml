@@ -50,6 +50,7 @@
         <module>bigquery</module>
         <module>workday</module>
         <module>pubsub</module>
+        <module>netsuite</module>
     </modules>
 
     <scm>
@@ -81,7 +82,7 @@
 
         <locales.version>[1.7,)</locales.version>
 
-        <component-runtime.version>1.1.15</component-runtime.version>
+        <component-runtime.version>1.1.18</component-runtime.version>
         <slf4j.version>1.7.25</slf4j.version>
 
         <beam.version>2.12.0</beam.version>
