@@ -16,6 +16,8 @@ import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,9 +25,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@GridLayout({ @GridLayout.Row({ "inputColumn", "referenceEntitySet" }) })
+@GridLayout({ @GridLayout.Row({ "inputColumn" }), @GridLayout.Row("referenceEntitySet") })
 @Documentation("Lookup property mapping between field and referenced entity set")
-public class LookupMapping {
+public class LookupMapping implements Serializable {
 
     @Option
     @Documentation("Field")
