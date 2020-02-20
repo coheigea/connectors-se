@@ -12,15 +12,13 @@
  */
 package org.talend.components.netsuite.runtime.v2019_2.client;
 
-import com.netsuite.webservices.v2019_2.platform.NetSuitePortType;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientFactory;
 import org.talend.components.netsuite.runtime.client.NetSuiteClientService;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
 import org.talend.components.netsuite.runtime.client.NetSuiteVersion;
 
-/**
- *
- */
+import com.netsuite.webservices.v2019_2.platform.NetSuitePortType;
+
 public class NetSuiteClientFactoryImpl implements NetSuiteClientFactory<NetSuitePortType> {
 
     public static final NetSuiteClientFactoryImpl INSTANCE = new NetSuiteClientFactoryImpl();

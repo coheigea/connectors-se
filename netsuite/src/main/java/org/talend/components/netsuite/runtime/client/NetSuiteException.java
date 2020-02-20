@@ -16,8 +16,6 @@ import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 
 /**
  * Thrown when NetSuite related error occurs.
- *
- * @see org.talend.components.netsuite.NetSuiteErrorCode
  */
 public class NetSuiteException extends RuntimeException {
 

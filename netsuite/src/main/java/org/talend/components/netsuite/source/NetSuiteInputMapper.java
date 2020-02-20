@@ -122,10 +122,6 @@ public class NetSuiteInputMapper implements Serializable {
 
     @Emitter
     public NetSuiteInputSource createWorker() {
-        // it can be run on a worker after deserialization
-        // if (service == null) {
-        // service = new NetSuiteService(recordBuilderFactory, i18n);
-        // }
         NetSuiteClientService<?> clientService = netSuiteClientConnectionService
                 .getClientService(configuration.getDataSet().getDataStore(), i18n);
         clientService.setBodyFieldsOnly(configuration.isBodyFieldsOnly());

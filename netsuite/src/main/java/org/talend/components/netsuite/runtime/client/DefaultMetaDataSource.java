@@ -41,8 +41,6 @@ public class DefaultMetaDataSource implements MetaDataSource {
 
     protected NetSuiteClientService<?> clientService;
 
-    // protected boolean customizationEnabled = true;
-
     protected CustomMetaDataSource customMetaDataSource;
 
     public DefaultMetaDataSource(NetSuiteClientService<?> clientService) {
@@ -50,11 +48,6 @@ public class DefaultMetaDataSource implements MetaDataSource {
 
         customMetaDataSource = clientService.createDefaultCustomMetaDataSource();
     }
-
-    // @Override
-    // public void setCustomizationEnabled(boolean customizationEnabled) {
-    // this.customizationEnabled = customizationEnabled;
-    // }
 
     @Override
     public BasicMetaData getBasicMetaData() {

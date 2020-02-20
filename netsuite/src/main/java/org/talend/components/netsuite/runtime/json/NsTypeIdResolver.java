@@ -20,9 +20,6 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.jsontype.impl.TypeIdResolverBase;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 
-/**
- *
- */
 public class NsTypeIdResolver extends TypeIdResolverBase {
 
     private BasicMetaData basicMetaData;

@@ -114,46 +114,13 @@ public class SearchQuery<SearchT, RecT> {
         }
     }
 
-    // /**
-    // * Set target for search.
-    // *
-    // * @param recordTypeName name of target record type
-    // * @return this search query object
-    // * @throws NetSuiteException if an error occurs during obtaining of meta data for record type
-    // */
-    // public SearchQuery<?, ?> target(final String recordTypeName) {
-    // this.recordTypeName = recordTypeName;
-    //
-    // recordTypeInfo = metaDataSource.getRecordType(recordTypeName);
-    // searchRecordTypeDesc = metaDataSource.getSearchRecordType(recordTypeName);
-    //
-    // // search not found or not supported
-    // if (searchRecordTypeDesc == null) {
-    // throw new NetSuiteException(new NetSuiteErrorCode(NetSuiteErrorCode.OPERATION_NOT_SUPPORTED),
-    // i18n.searchRecordNotFound(recordTypeName));
-    // }
-    //
-    // return this;
-    // }
-
     public SearchQuery<?, ?> savedSearchId(String savedSearchId) {
         this.savedSearchId = savedSearchId;
         return this;
     }
 
-    // public RecordTypeInfo getRecordTypeInfo() {
-    // initSearch();
-    // return recordTypeInfo;
-    // }
-    //
-    // public SearchRecordTypeDesc getSearchRecordTypeDesc() {
-    // initSearch();
-    // return searchRecordTypeDesc;
-    // }
-
     /**
      * Performs lazy initialization of search query.
-     *
      */
     @SuppressWarnings("unchecked")
     private void initSearch() {
@@ -337,10 +304,6 @@ public class SearchQuery<SearchT, RecT> {
             NetSuiteClientService.checkError(result.getStatus());
         }
         return result;
-        // SearchResultSet<RecT> resultSet = new SearchResultSet<>(
-        // clientService, recordTypeName,
-        // result);
-        // return resultSet;
     }
 
 }

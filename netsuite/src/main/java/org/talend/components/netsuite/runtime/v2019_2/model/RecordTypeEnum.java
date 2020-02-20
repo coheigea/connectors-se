@@ -12,12 +12,13 @@
  */
 package org.talend.components.netsuite.runtime.v2019_2.model;
 
+import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
+
 import com.netsuite.webservices.v2019_2.activities.scheduling.CalendarEvent;
 import com.netsuite.webservices.v2019_2.activities.scheduling.PhoneCall;
 import com.netsuite.webservices.v2019_2.activities.scheduling.ProjectTask;
 import com.netsuite.webservices.v2019_2.activities.scheduling.ResourceAllocation;
 import com.netsuite.webservices.v2019_2.activities.scheduling.Task;
-import com.netsuite.webservices.v2019_2.platform.common.LandedCost;
 import com.netsuite.webservices.v2019_2.documents.filecabinet.File;
 import com.netsuite.webservices.v2019_2.documents.filecabinet.Folder;
 import com.netsuite.webservices.v2019_2.general.communication.Message;
@@ -65,6 +66,7 @@ import com.netsuite.webservices.v2019_2.lists.support.Topic;
 import com.netsuite.webservices.v2019_2.lists.website.SiteCategory;
 import com.netsuite.webservices.v2019_2.platform.common.Address;
 import com.netsuite.webservices.v2019_2.platform.common.InventoryDetail;
+import com.netsuite.webservices.v2019_2.platform.common.LandedCost;
 import com.netsuite.webservices.v2019_2.setup.customization.CrmCustomField;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomList;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomPurchase;
@@ -100,11 +102,11 @@ import com.netsuite.webservices.v2019_2.transactions.employees.TimeBill;
 import com.netsuite.webservices.v2019_2.transactions.employees.TimeEntry;
 import com.netsuite.webservices.v2019_2.transactions.employees.TimeSheet;
 import com.netsuite.webservices.v2019_2.transactions.financial.Budget;
+import com.netsuite.webservices.v2019_2.transactions.general.AdvInterCompanyJournalEntry;
 import com.netsuite.webservices.v2019_2.transactions.general.InterCompanyJournalEntry;
 import com.netsuite.webservices.v2019_2.transactions.general.JournalEntry;
 import com.netsuite.webservices.v2019_2.transactions.general.PeriodEndJournal;
 import com.netsuite.webservices.v2019_2.transactions.general.StatisticalJournalEntry;
-import com.netsuite.webservices.v2019_2.transactions.general.AdvInterCompanyJournalEntry;
 import com.netsuite.webservices.v2019_2.transactions.inventory.AssemblyBuild;
 import com.netsuite.webservices.v2019_2.transactions.inventory.AssemblyUnbuild;
 import com.netsuite.webservices.v2019_2.transactions.inventory.BinTransfer;
@@ -118,8 +120,8 @@ import com.netsuite.webservices.v2019_2.transactions.inventory.WorkOrder;
 import com.netsuite.webservices.v2019_2.transactions.inventory.WorkOrderClose;
 import com.netsuite.webservices.v2019_2.transactions.inventory.WorkOrderCompletion;
 import com.netsuite.webservices.v2019_2.transactions.inventory.WorkOrderIssue;
-import com.netsuite.webservices.v2019_2.transactions.purchases.ItemReceipt;
 import com.netsuite.webservices.v2019_2.transactions.purchases.InboundShipment;
+import com.netsuite.webservices.v2019_2.transactions.purchases.ItemReceipt;
 import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseOrder;
 import com.netsuite.webservices.v2019_2.transactions.purchases.PurchaseRequisition;
 import com.netsuite.webservices.v2019_2.transactions.purchases.VendorBill;
@@ -134,15 +136,6 @@ import com.netsuite.webservices.v2019_2.transactions.sales.Opportunity;
 import com.netsuite.webservices.v2019_2.transactions.sales.SalesOrder;
 import com.netsuite.webservices.v2019_2.transactions.sales.Usage;
 
-import java.lang.Class;
-import java.lang.Override;
-import java.lang.String;
-
-import org.talend.components.netsuite.runtime.model.RecordTypeDesc;
-
-/**
- *
- */
 public enum RecordTypeEnum implements RecordTypeDesc {
     ACCOUNT("account", "Account", Account.class, "account"),
     ACCOUNTING_PERIOD("accountingPeriod", "AccountingPeriod", AccountingPeriod.class, "accountingPeriod"),

@@ -32,7 +32,7 @@ public class CustomRecordTypeInfo extends RecordTypeInfo {
      *
      * @param name name of custom record type
      * @param recordType record type descriptor
-     * @param ref customization ref
+     * @param customizationRef customization ref
      */
     public CustomRecordTypeInfo(String name, RecordTypeDesc recordType, NsRef customizationRef) {
         super(name, recordType);

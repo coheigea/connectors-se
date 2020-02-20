@@ -42,9 +42,6 @@ public class NetSuiteEndpoint {
     /** Connection configuration for this endpoint. */
     private ConnectionConfig connectionConfig;
 
-    /** NetSuite client. */
-    // private NetSuiteClientService<?> clientService;
-
     private Messages i18n;
 
     /**

@@ -109,7 +109,6 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
         for (Entry entry : record.getSchema().getEntries()) {
             Entry targetEntry = targetSchema.get(entry.getName());
             if (targetEntry == null) {
-                // TODO: Add logging that entry is not present in runtime schema
                 continue;
             }
             String nsFieldName = Beans.toInitialLower(entry.getName());
@@ -120,12 +119,12 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
             }
 
             Object value;
-            // int -1 is null ZonedDateTime
             if (targetEntry.getType() == Schema.Type.DATETIME && entry.getType() == Schema.Type.INT
                     && record.getInt(entry.getName()) == -1) {
+                // int -1 is null ZonedDateTime
                 value = null;
-                // boolean can be coded as string
             } else if (targetEntry.getType() == Schema.Type.BOOLEAN && entry.getType() == Schema.Type.STRING) {
+                // boolean can be coded as string
                 value = record.getOptionalString(entry.getName()).map(Boolean::valueOf).orElse(null);
             } else {
                 value = record.get(fieldDesc.getRecordValueType(), entry.getName());

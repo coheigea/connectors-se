@@ -12,8 +12,6 @@
  */
 package org.talend.components.netsuite.runtime.v2019_2.model;
 
-import com.netsuite.webservices.v2019_2.lists.accounting.*;
-import com.netsuite.webservices.v2019_2.platform.common.*;
 import org.talend.components.netsuite.runtime.model.SearchRecordTypeDesc;
 
 import com.netsuite.webservices.v2019_2.activities.scheduling.CalendarEventSearch;
@@ -34,6 +32,7 @@ import com.netsuite.webservices.v2019_2.general.communication.MessageSearch;
 import com.netsuite.webservices.v2019_2.general.communication.MessageSearchAdvanced;
 import com.netsuite.webservices.v2019_2.general.communication.NoteSearch;
 import com.netsuite.webservices.v2019_2.general.communication.NoteSearchAdvanced;
+import com.netsuite.webservices.v2019_2.lists.accounting.*;
 import com.netsuite.webservices.v2019_2.lists.employees.EmployeeSearch;
 import com.netsuite.webservices.v2019_2.lists.employees.EmployeeSearchAdvanced;
 import com.netsuite.webservices.v2019_2.lists.employees.HcmJobSearch;
@@ -82,6 +81,7 @@ import com.netsuite.webservices.v2019_2.lists.support.TopicSearch;
 import com.netsuite.webservices.v2019_2.lists.support.TopicSearchAdvanced;
 import com.netsuite.webservices.v2019_2.lists.website.SiteCategorySearch;
 import com.netsuite.webservices.v2019_2.lists.website.SiteCategorySearchAdvanced;
+import com.netsuite.webservices.v2019_2.platform.common.*;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomListSearch;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomListSearchAdvanced;
 import com.netsuite.webservices.v2019_2.setup.customization.CustomRecordSearch;
@@ -113,9 +113,6 @@ import com.netsuite.webservices.v2019_2.transactions.sales.TransactionSearchAdva
 import com.netsuite.webservices.v2019_2.transactions.sales.UsageSearch;
 import com.netsuite.webservices.v2019_2.transactions.sales.UsageSearchAdvanced;
 
-/**
- *
- */
 public enum SearchRecordTypeEnum implements SearchRecordTypeDesc {
     ACCOUNT("account", "Account", AccountSearch.class, AccountSearchBasic.class, AccountSearchAdvanced.class),
 

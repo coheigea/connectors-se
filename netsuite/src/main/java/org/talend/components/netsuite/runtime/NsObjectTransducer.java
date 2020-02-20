@@ -78,13 +78,7 @@ public abstract class NsObjectTransducer {
 
     public static final String NULL_FIELD = "NullField";
 
-    /** NetSuite client used. */
-    // protected NetSuiteClientService<?> clientService;
-
     protected Messages i18n;
-
-    /** Source of meta data used. */
-    // protected final MetaDataSource metaDataSource;
 
     /** XML data type factory used. */
     protected final DatatypeFactory datatypeFactory;
@@ -103,8 +97,6 @@ public abstract class NsObjectTransducer {
 
     /**
      * Creates instance of transducer using given NetSuite client.
-     *
-     * @param clientService client to be used
      */
     protected NsObjectTransducer(BasicMetaData basicMetaData, Messages i18n, String apiVersion, Schema schema) {
         this.basicMetaData = basicMetaData;
@@ -125,8 +117,6 @@ public abstract class NsObjectTransducer {
 
         // Register JAXB annotation module to perform mapping of data model objects to/from JSON.
         objectMapper.registerModule(new JaxbAnnotationModule());
-
-        // metaDataSource = clientService.getMetaDataSource();
     }
 
     /**

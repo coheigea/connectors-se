@@ -26,8 +26,6 @@ import org.talend.components.netsuite.runtime.model.TypeDesc;
  */
 public interface MetaDataSource {
 
-    // void setCustomizationEnabled(boolean customizationEnabled);
-
     /**
      * Return meta data about basic (standard) data model, without customizations.
      *
