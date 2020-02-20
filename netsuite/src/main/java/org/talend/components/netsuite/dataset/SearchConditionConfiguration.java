@@ -12,23 +12,23 @@
  */
 package org.talend.components.netsuite.dataset;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.io.Serializable;
+
 import org.talend.components.netsuite.service.UIActionService;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.configuration.action.Suggestable;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf;
 import org.talend.sdk.component.api.configuration.condition.ActiveIf.EvaluationStrategy;
-import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
+import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.meta.Documentation;
 
-import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@GridLayout({ @GridLayout.Row({ "field" }), @GridLayout.Row({ "operator" }), @GridLayout.Row({ "searchValue" }),
-        @GridLayout.Row({ "additionalSearchValue" }) })
 @Documentation("Search Condition parameters")
 @Data
+@OptionsOrder({ "field", "operator", "searchValue", "additionalSearchValue" })
 @NoArgsConstructor
 @AllArgsConstructor
 public class SearchConditionConfiguration implements Serializable {

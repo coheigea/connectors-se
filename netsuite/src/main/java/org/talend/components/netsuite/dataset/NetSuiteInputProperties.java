@@ -23,10 +23,8 @@ import org.talend.sdk.component.api.meta.Documentation;
 import lombok.Data;
 
 @Data
-@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" })
-                // disabled temporary until https://jira.talendforge.org/browse/TFD-7129 is fixed
-        , @GridLayout.Row({ "searchCondition" }) }), @GridLayout(names = { GridLayout.FormType.ADVANCED }, value = {
-                @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "bodyFieldsOnly" }) }) })
+@GridLayouts({ @GridLayout({ @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "searchCondition" }) }), @GridLayout(names = {
+        GridLayout.FormType.ADVANCED }, value = { @GridLayout.Row({ "dataSet" }), @GridLayout.Row({ "bodyFieldsOnly" }) }) })
 @Documentation("Properties for Input component")
 public class NetSuiteInputProperties implements Serializable {
 
