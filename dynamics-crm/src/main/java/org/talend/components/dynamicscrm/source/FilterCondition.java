@@ -13,10 +13,12 @@
 package org.talend.components.dynamicscrm.source;
 
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
 import java.io.Serializable;
+import java.util.logging.Filter;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,7 +27,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@GridLayout({ @GridLayout.Row({ "field" }), @GridLayout.Row({ "filterOperator" }), @GridLayout.Row({ "value" }) })
+@OptionsOrder({ "field", "filterOperator", "value" })
 @Documentation("Filter condition")
 public class FilterCondition implements Serializable {
 
@@ -42,12 +44,27 @@ public class FilterCondition implements Serializable {
     private String value;
 
     public enum FilterOperator {
-        EQUAL,
-        NOTEQUAL,
-        GREATER_THAN,
-        LESS_THAN,
-        GREATER_OR_EQUAL,
-        LESS_OR_EQUAL;
+        EQUAL("eq"),
+        NOTEQUAL("ne"),
+        GREATER_THAN("gt"),
+        LESS_THAN("lt"),
+        GREATER_OR_EQUAL("ge"),
+        LESS_OR_EQUAL("le");
+
+        private final String textPresentation;
+
+        FilterOperator(String textPresentation) {
+            this.textPresentation = textPresentation;
+        }
+
+        public String getTextPresentation() {
+            return textPresentation;
+        }
+    }
+
+    public String toString() {
+        return new StringBuilder("(").append(field).append(" ").append(filterOperator.getTextPresentation()).append(" '")
+                .append(value).append("'").append(")").toString();
     }
 
 }

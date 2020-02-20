@@ -13,6 +13,7 @@
 package org.talend.components.dynamicscrm.source;
 
 import org.talend.sdk.component.api.configuration.Option;
+import org.talend.sdk.component.api.configuration.ui.OptionsOrder;
 import org.talend.sdk.component.api.configuration.ui.layout.GridLayout;
 import org.talend.sdk.component.api.meta.Documentation;
 
@@ -25,7 +26,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@GridLayout({ @GridLayout.Row({ "field" }), @GridLayout.Row({ "order" }) })
+@OptionsOrder({ "field", "order" })
 @Documentation("Order by condition")
 public class OrderByCondition implements Serializable {
 

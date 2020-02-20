@@ -31,6 +31,7 @@ import org.talend.components.dynamicscrm.service.I18n;
 import org.talend.components.dynamicscrm.service.PropertyValidationData;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.component.Icon;
+import org.talend.sdk.component.api.component.Icon.IconType;
 import org.talend.sdk.component.api.component.Version;
 import org.talend.sdk.component.api.configuration.Option;
 import org.talend.sdk.component.api.meta.Documentation;
@@ -41,7 +42,7 @@ import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.service.Service;
 
 @Version(1)
-@Icon(Icon.IconType.STAR)
+@Icon(value = IconType.CUSTOM, custom = "azure-dynamics")
 @Processor(name = "DynamicsCrmOutput")
 @Documentation("Dynamics CRM output")
 public class DynamicsCrmOutput implements Serializable {
