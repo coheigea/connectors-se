@@ -42,7 +42,7 @@ public class HTMLConverter implements RecordConverter<Element> {
     @Override
     public Schema inferSchema(Element record) {
         if (columns == null) {
-            List<String> columnNames = inferSchemaInfo(record, true);
+            List<String> columnNames = inferSchemaInfo(record, !isHeaderRecord(record));
             Schema.Builder schemaBuilder = recordBuilderFactory.newSchemaBuilder(Schema.Type.RECORD);
             columnNames.forEach(column -> schemaBuilder
                     .withEntry(recordBuilderFactory.newEntryBuilder().withName(column).withType(Schema.Type.STRING).build()));
@@ -87,5 +87,9 @@ public class HTMLConverter implements RecordConverter<Element> {
             result.add(finalName);
         }
         return result;
+    }
+
+    private boolean isHeaderRecord(Element record) {
+        return  record.getElementsByTag("th").size() > 0;
     }
 }
