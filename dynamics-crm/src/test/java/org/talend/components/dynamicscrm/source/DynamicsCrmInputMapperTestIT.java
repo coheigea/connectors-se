@@ -43,17 +43,9 @@ import org.talend.sdk.component.runtime.manager.chain.Job;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DynamicsCrmInputMapperTestIT extends DynamicsCrmTestBase {
 
-    private DynamicsCRMClient client;
-
     @BeforeAll
     public void prepareTestData() throws AuthenticationException, ServiceUnavailableException {
-        ClientConfiguration clientConfig = ClientConfigurationFactory.buildOAuthWebClientConfiguration(getClientId(),
-                getClientSecret(), getUsername(), getPassword(), authEndpoint, WebAppPermission.DELEGATED);
-        clientConfig.setTimeout(60);
-        clientConfig.setMaxRetry(5, 1000);
-        clientConfig.setReuseHttpClient(false);
-
-        client = new DynamicsCRMClient(clientConfig, rootUrl, entitySet);
+        init();
         ClientEntity entity = createTestEntity(client);
 
         client.insertEntity(entity);

@@ -31,13 +31,9 @@ public class UpdateRecordProcessor extends AbstractToEntityRecordProcessor {
     }
 
     @Override
-    protected void doProcessRecord(ClientEntity entity, Record record) {
+    protected void doProcessRecord(ClientEntity entity, Record record) throws ServiceUnavailableException {
         // There is only one key in Microsoft CRM objects
-        try {
-            client.updateEntity(entity,
-                    record.getString(entitySet.getEntityType().getKeyPropertyRefs().get(0).getProperty().getName()));
-        } catch (ServiceUnavailableException e) {
-            throw new DynamicsCrmException(i18n.failedToInsertEntity(e.getMessage()), e);
-        }
+        client.updateEntity(entity,
+                record.getString(entitySet.getEntityType().getKeyPropertyRefs().get(0).getProperty().getName()));
     }
 }

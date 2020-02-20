@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.talend.components.dynamicscrm.DynamicsCrmTestBase;
 import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
-import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection.AppType;
+import org.talend.components.dynamicscrm.datastore.AppType;
 import org.talend.sdk.component.api.service.Service;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus;
 import org.talend.sdk.component.api.service.healthcheck.HealthCheckStatus.Status;
@@ -47,7 +47,7 @@ public class UIActionServiceTestIT extends DynamicsCrmTestBase {
         connection.setClientId("wrongClientId");
         connection.setUsername("wrongUsername");
         connection.setPassword("wrongPassword");
-        connection.setAppType(AppType.Native);
+        connection.setAppType(AppType.NATIVE);
         HealthCheckStatus status = service.validateConnection(connection);
         assertEquals(Status.KO, status.getStatus());
     }

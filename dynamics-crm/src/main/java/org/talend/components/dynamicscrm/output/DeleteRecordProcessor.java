@@ -35,13 +35,9 @@ public class DeleteRecordProcessor implements RecordProcessor {
     }
 
     @Override
-    public void processRecord(Record record) {
+    public void processRecord(Record record) throws ServiceUnavailableException {
         // There is only one key in Dynamics CRM.
         String keyName = entitySet.getEntityType().getKeyPropertyRefs().get(0).getName();
-        try {
-            client.deleteEntity(record.getString(keyName));
-        } catch (ServiceUnavailableException e) {
-            throw new DynamicsCrmException(i18n.failedToDeleteEntity(record.getString(keyName), e.getMessage()));
-        }
+        client.deleteEntity(record.getString(keyName));
     }
 }

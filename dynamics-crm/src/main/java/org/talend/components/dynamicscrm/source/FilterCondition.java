@@ -44,27 +44,12 @@ public class FilterCondition implements Serializable {
     private String value;
 
     public enum FilterOperator {
-        EQUAL("eq"),
-        NOTEQUAL("ne"),
-        GREATER_THAN("gt"),
-        LESS_THAN("lt"),
-        GREATER_OR_EQUAL("ge"),
-        LESS_OR_EQUAL("le");
-
-        private final String textPresentation;
-
-        FilterOperator(String textPresentation) {
-            this.textPresentation = textPresentation;
-        }
-
-        public String getTextPresentation() {
-            return textPresentation;
-        }
-    }
-
-    public String toString() {
-        return new StringBuilder("(").append(field).append(" ").append(filterOperator.getTextPresentation()).append(" '")
-                .append(value).append("'").append(")").toString();
+        EQUAL,
+        NOTEQUAL,
+        GREATER_THAN,
+        LESS_THAN,
+        GREATER_OR_EQUAL,
+        LESS_OR_EQUAL
     }
 
 }

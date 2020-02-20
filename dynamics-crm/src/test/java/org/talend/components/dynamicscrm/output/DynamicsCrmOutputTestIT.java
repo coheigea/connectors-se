@@ -47,17 +47,9 @@ import javax.naming.ServiceUnavailableException;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class DynamicsCrmOutputTestIT extends DynamicsCrmTestBase {
 
-    private DynamicsCRMClient client;
-
     @BeforeAll
     public void init() throws AuthenticationException {
-        ClientConfiguration clientConfig = ClientConfigurationFactory.buildOAuthWebClientConfiguration(getClientId(),
-                getClientSecret(), getUsername(), getPassword(), authEndpoint, WebAppPermission.DELEGATED);
-        clientConfig.setTimeout(60);
-        clientConfig.setMaxRetry(5, 1000);
-        clientConfig.setReuseHttpClient(false);
-
-        client = new DynamicsCRMClient(clientConfig, rootUrl, entitySet);
+        super.init();
     }
 
     @Test

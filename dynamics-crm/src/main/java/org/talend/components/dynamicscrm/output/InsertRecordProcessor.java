@@ -31,11 +31,7 @@ public class InsertRecordProcessor extends AbstractToEntityRecordProcessor {
     }
 
     @Override
-    protected void doProcessRecord(ClientEntity entity, Record record) {
-        try {
-            client.insertEntity(entity);
-        } catch (ServiceUnavailableException e) {
-            throw new DynamicsCrmException(i18n.failedToInsertEntity(e.getMessage()), e);
-        }
+    protected void doProcessRecord(ClientEntity entity, Record record) throws ServiceUnavailableException {
+        client.insertEntity(entity);
     }
 }

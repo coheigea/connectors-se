@@ -57,11 +57,14 @@ public class DynamicsCrmInputSource implements Serializable {
 
     private Edm metadata;
 
+    private final InputHelper helper;
+
     public DynamicsCrmInputSource(@Option("configuration") final DynamicsCrmInputMapperConfiguration configuration,
             final DynamicsCrmService service, final RecordBuilderFactory builderFactory) {
         this.configuration = configuration;
         this.service = service;
         this.builderFactory = builderFactory;
+        this.helper = new InputHelper(i18n);
     }
 
     @PostConstruct
@@ -86,15 +89,15 @@ public class DynamicsCrmInputSource implements Serializable {
         }
         columnNames = columnNames.stream().filter(s -> readableColumns.contains(client.extractNavigationLinkName(s)))
                 .collect(Collectors.toList());
-        schema = service.getSchemaFromMetadata(metadata, configuration.getDataset().getEntitySet(), columnNames, builderFactory);
-        iterator = service.getEntitySetIterator(client, service.createQueryOptionConfig(schema, configuration));
+        schema = helper.getSchemaFromMetadata(metadata, configuration.getDataset().getEntitySet(), columnNames, builderFactory);
+        iterator = service.getEntitySetIterator(client, helper.createQueryOptionConfig(schema, configuration));
     }
 
     @Producer
     public Record next() {
         if (iterator.hasNext()) {
             ClientEntity next = iterator.next();
-            return service.createRecord(next, schema, builderFactory);
+            return helper.createRecord(next, schema, builderFactory);
         }
         return null;
     }

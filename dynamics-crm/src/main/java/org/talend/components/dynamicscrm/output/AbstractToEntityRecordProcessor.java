@@ -44,6 +44,8 @@ import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.sdk.component.api.record.Record;
 import org.talend.sdk.component.api.record.Schema;
 
+import javax.naming.ServiceUnavailableException;
+
 public abstract class AbstractToEntityRecordProcessor implements RecordProcessor {
 
     protected final DynamicsCRMClient client;
@@ -89,7 +91,7 @@ public abstract class AbstractToEntityRecordProcessor implements RecordProcessor
     }
 
     @Override
-    public void processRecord(Record record) {
+    public void processRecord(Record record) throws ServiceUnavailableException {
         Set<String> keys = entitySet.getEntityType().getKeyPropertyRefs().stream().map(EdmKeyPropertyRef::getName)
                 .collect(Collectors.toSet());
         columnNames.removeAll(keys);
@@ -97,7 +99,7 @@ public abstract class AbstractToEntityRecordProcessor implements RecordProcessor
         doProcessRecord(entity, record);
     }
 
-    protected abstract void doProcessRecord(ClientEntity entity, Record record);
+    protected abstract void doProcessRecord(ClientEntity entity, Record record) throws ServiceUnavailableException;
 
     protected ClientEntity createEntity(Set<String> columnNames, Record record) {
         ClientEntity entity = client.getClient().getObjectFactory().newEntity(entitySet.getEntityType().getFullQualifiedName());

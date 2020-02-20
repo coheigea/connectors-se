@@ -15,6 +15,7 @@ package org.talend.components.dynamicscrm;
 import java.util.List;
 import java.util.UUID;
 
+import javax.naming.AuthenticationException;
 import javax.naming.ServiceUnavailableException;
 
 import org.apache.olingo.client.api.communication.request.retrieve.ODataEntitySetRequest;
@@ -27,7 +28,10 @@ import org.apache.olingo.client.core.uri.FilterFactoryImpl;
 import org.apache.olingo.commons.api.edm.EdmPrimitiveTypeKind;
 import org.talend.components.dynamicscrm.dataset.DynamicsCrmDataset;
 import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection;
-import org.talend.components.dynamicscrm.datastore.DynamicsCrmConnection.AppType;
+import org.talend.components.dynamicscrm.datastore.AppType;
+import org.talend.ms.crm.odata.ClientConfiguration;
+import org.talend.ms.crm.odata.ClientConfiguration.WebAppPermission;
+import org.talend.ms.crm.odata.ClientConfigurationFactory;
 import org.talend.ms.crm.odata.DynamicsCRMClient;
 import org.talend.ms.crm.odata.QueryOptionConfig;
 import org.talend.sdk.component.api.DecryptedServer;
@@ -45,6 +49,8 @@ import org.talend.sdk.component.maven.Server;
 @WithComponents("org.talend.components.dynamicscrm")
 @WithMavenServers
 public abstract class DynamicsCrmTestBase {
+
+    protected DynamicsCRMClient client;
 
     @Injected
     protected BaseComponentsHandler components;
@@ -82,6 +88,16 @@ public abstract class DynamicsCrmTestBase {
         return clientIdSecret.getPassword();
     }
 
+    public void init() throws AuthenticationException {
+        ClientConfiguration clientConfig = ClientConfigurationFactory.buildOAuthWebClientConfiguration(getClientId(),
+                getClientSecret(), getUsername(), getPassword(), authEndpoint, WebAppPermission.DELEGATED);
+        clientConfig.setTimeout(60);
+        clientConfig.setMaxRetry(5, 1000);
+        clientConfig.setReuseHttpClient(false);
+
+        client = new DynamicsCRMClient(clientConfig, rootUrl, entitySet);
+    }
+
     public void tearDown(DynamicsCRMClient client) throws ServiceUnavailableException {
         for (ClientEntity entity : getData(client)) {
             ClientProperty property = entity.getProperty("contactid");
@@ -105,7 +121,7 @@ public abstract class DynamicsCrmTestBase {
     protected DynamicsCrmDataset createDataset() {
         DynamicsCrmConnection connection = new DynamicsCrmConnection();
         connection.setMaxRetries(5);
-        connection.setAppType(AppType.Web);
+        connection.setAppType(AppType.WEB);
         connection.setAuthorizationEndpoint(authEndpoint);
         connection.setClientId(getClientId());
         connection.setClientSecret(getClientSecret());

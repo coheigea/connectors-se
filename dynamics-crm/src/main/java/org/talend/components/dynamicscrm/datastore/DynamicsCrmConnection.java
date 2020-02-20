@@ -40,7 +40,7 @@ public class DynamicsCrmConnection implements Serializable {
     @Option
     @Required
     @Documentation("Select the type of your application, either Native App or Web App with delegated permissions.")
-    private AppType appType = AppType.Native;
+    private AppType appType = AppType.NATIVE;
 
     @Option
     @Required
@@ -76,17 +76,12 @@ public class DynamicsCrmConnection implements Serializable {
 
     @Option
     @Required
-    @Documentation("Timeout")
+    @Documentation("Timeout in seconds")
     private Integer timeout = 60;
 
     @Option
     @Required
     @Documentation("Max retries")
     private Integer maxRetries = 5;
-
-    public enum AppType {
-        Native,
-        Web
-    }
 
 }

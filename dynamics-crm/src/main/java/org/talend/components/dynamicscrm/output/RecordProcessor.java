@@ -14,8 +14,10 @@ package org.talend.components.dynamicscrm.output;
 
 import org.talend.sdk.component.api.record.Record;
 
+import javax.naming.ServiceUnavailableException;
+
 public interface RecordProcessor {
 
-    void processRecord(Record record);
+    void processRecord(Record record) throws ServiceUnavailableException;
 
 }

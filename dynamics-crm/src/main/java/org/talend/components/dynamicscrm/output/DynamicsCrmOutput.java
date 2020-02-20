@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.naming.AuthenticationException;
+import javax.naming.ServiceUnavailableException;
 
 import org.apache.olingo.commons.api.edm.Edm;
 import org.apache.olingo.commons.api.edm.EdmEntitySet;
@@ -119,7 +120,11 @@ public class DynamicsCrmOutput implements Serializable {
 
     @ElementListener
     public void onNext(@Input final Record defaultInput) {
-        processor.processRecord(defaultInput);
+        try {
+            processor.processRecord(defaultInput);
+        } catch (ServiceUnavailableException e) {
+            throw new DynamicsCrmException(i18n.failedToInsertEntity(e.getMessage()), e);
+        }
     }
 
     @PreDestroy

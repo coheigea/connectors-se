@@ -10,9 +10,13 @@
  * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations under the License.
  */
-package org.talend.components.dynamicscrm.service;
+package org.talend.components.dynamicscrm.source;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.talend.components.dynamicscrm.service.DynamicsCrmService;
+import org.talend.components.dynamicscrm.service.I18n;
 import org.talend.components.dynamicscrm.source.DynamicsCrmInputMapperConfiguration;
 import org.talend.components.dynamicscrm.source.DynamicsCrmInputMapperConfiguration.Operator;
 import org.talend.components.dynamicscrm.source.FilterCondition;
@@ -32,10 +36,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @WithComponents("org.talend.components.dynamicscrm")
-public class DynamicsCrmServiceTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class InputHelperTest {
 
     @Service
-    private DynamicsCrmService service;
+    private I18n i18n;
+
+    private InputHelper helper;
+
+    @BeforeAll
+    public void initHelper() {
+        helper = new InputHelper(i18n);
+    }
 
     @Test
     public void testEmptyFilterConversion() {
@@ -44,7 +56,7 @@ public class DynamicsCrmServiceTest {
         List<FilterCondition> filterConditionList = new ArrayList<>();
         configuration.setFilterConditions(filterConditionList);
 
-        String filterQuery = service.getFilterQuery(configuration);
+        String filterQuery = helper.getFilterQuery(configuration);
 
         assertNull(filterQuery);
     }
@@ -57,7 +69,7 @@ public class DynamicsCrmServiceTest {
         filterConditionList.add(new FilterCondition("field", FilterOperator.EQUAL, "value"));
         configuration.setFilterConditions(filterConditionList);
 
-        String filterQuery = service.getFilterQuery(configuration);
+        String filterQuery = helper.getFilterQuery(configuration);
 
         assertNotNull(filterQuery);
         assertEquals("(field eq 'value')", filterQuery);
@@ -71,7 +83,7 @@ public class DynamicsCrmServiceTest {
         filterConditionList.add(new FilterCondition("field", FilterOperator.NOTEQUAL, "value"));
         configuration.setFilterConditions(filterConditionList);
 
-        String filterQuery = service.getFilterQuery(configuration);
+        String filterQuery = helper.getFilterQuery(configuration);
 
         assertNotNull(filterQuery);
         assertEquals("(field ne 'value')", filterQuery);
@@ -85,7 +97,7 @@ public class DynamicsCrmServiceTest {
         filterConditionList.add(new FilterCondition("field", FilterOperator.GREATER_THAN, "5"));
         configuration.setFilterConditions(filterConditionList);
 
-        String filterQuery = service.getFilterQuery(configuration);
+        String filterQuery = helper.getFilterQuery(configuration);
 
         assertNotNull(filterQuery);
         assertEquals("(field gt '5')", filterQuery);
@@ -99,7 +111,7 @@ public class DynamicsCrmServiceTest {
         filterConditionList.add(new FilterCondition("field", FilterOperator.GREATER_OR_EQUAL, "5"));
         configuration.setFilterConditions(filterConditionList);
 
-        String filterQuery = service.getFilterQuery(configuration);
+        String filterQuery = helper.getFilterQuery(configuration);
 
         assertNotNull(filterQuery);
         assertEquals("(field ge '5')", filterQuery);
@@ -113,7 +125,7 @@ public class DynamicsCrmServiceTest {
         filterConditionList.add(new FilterCondition("field", FilterOperator.LESS_THAN, "5"));
         configuration.setFilterConditions(filterConditionList);
 
-        String filterQuery = service.getFilterQuery(configuration);
+        String filterQuery = helper.getFilterQuery(configuration);
 
         assertNotNull(filterQuery);
         assertEquals("(field lt '5')", filterQuery);
@@ -127,7 +139,7 @@ public class DynamicsCrmServiceTest {
         filterConditionList.add(new FilterCondition("field", FilterOperator.LESS_OR_EQUAL, "5"));
         configuration.setFilterConditions(filterConditionList);
 
-        String filterQuery = service.getFilterQuery(configuration);
+        String filterQuery = helper.getFilterQuery(configuration);
 
         assertNotNull(filterQuery);
         assertEquals("(field le '5')", filterQuery);
@@ -146,7 +158,7 @@ public class DynamicsCrmServiceTest {
         filterConditionList.add(new FilterCondition("field", FilterOperator.LESS_OR_EQUAL, "5"));
         configuration.setFilterConditions(filterConditionList);
 
-        String filterQuery = service.getFilterQuery(configuration);
+        String filterQuery = helper.getFilterQuery(configuration);
 
         assertNotNull(filterQuery);
         assertEquals(
@@ -168,7 +180,7 @@ public class DynamicsCrmServiceTest {
         filterConditionList.add(new FilterCondition("field", FilterOperator.LESS_OR_EQUAL, "5"));
         configuration.setFilterConditions(filterConditionList);
 
-        String filterQuery = service.getFilterQuery(configuration);
+        String filterQuery = helper.getFilterQuery(configuration);
 
         assertNotNull(filterQuery);
         assertEquals(
@@ -181,7 +193,7 @@ public class DynamicsCrmServiceTest {
         DynamicsCrmInputMapperConfiguration configuration = new DynamicsCrmInputMapperConfiguration();
         configuration.setOrderByConditionsList(Arrays.asList(new OrderByCondition("field", Order.ASC)));
 
-        String orderQuery = service.getOrderByQuery(configuration);
+        String orderQuery = helper.getOrderByQuery(configuration);
 
         assertNotNull(orderQuery);
         assertEquals("field", orderQuery);
@@ -192,7 +204,7 @@ public class DynamicsCrmServiceTest {
         DynamicsCrmInputMapperConfiguration configuration = new DynamicsCrmInputMapperConfiguration();
         configuration.setOrderByConditionsList(Arrays.asList(new OrderByCondition("field", Order.DESC)));
 
-        String orderQuery = service.getOrderByQuery(configuration);
+        String orderQuery = helper.getOrderByQuery(configuration);
 
         assertNotNull(orderQuery);
         assertEquals("field desc", orderQuery);
@@ -204,7 +216,7 @@ public class DynamicsCrmServiceTest {
         configuration.setOrderByConditionsList(
                 Arrays.asList(new OrderByCondition("field", Order.DESC), new OrderByCondition("field1", Order.ASC)));
 
-        String orderQuery = service.getOrderByQuery(configuration);
+        String orderQuery = helper.getOrderByQuery(configuration);
 
         assertNotNull(orderQuery);
         assertEquals("field desc,field1", orderQuery);
@@ -215,7 +227,7 @@ public class DynamicsCrmServiceTest {
         DynamicsCrmInputMapperConfiguration configuration = new DynamicsCrmInputMapperConfiguration();
         configuration.setOrderByConditionsList(Arrays.asList(new OrderByCondition("", Order.DESC)));
 
-        String orderQuery = service.getOrderByQuery(configuration);
+        String orderQuery = helper.getOrderByQuery(configuration);
 
         assertNull(orderQuery);
     }
@@ -225,7 +237,7 @@ public class DynamicsCrmServiceTest {
         DynamicsCrmInputMapperConfiguration configuration = new DynamicsCrmInputMapperConfiguration();
         configuration.setOrderByConditionsList(Collections.emptyList());
 
-        String orderQuery = service.getOrderByQuery(configuration);
+        String orderQuery = helper.getOrderByQuery(configuration);
 
         assertNull(orderQuery);
     }
@@ -235,7 +247,7 @@ public class DynamicsCrmServiceTest {
         DynamicsCrmInputMapperConfiguration configuration = new DynamicsCrmInputMapperConfiguration();
         configuration.setOrderByConditionsList(null);
 
-        String orderQuery = service.getOrderByQuery(configuration);
+        String orderQuery = helper.getOrderByQuery(configuration);
 
         assertNull(orderQuery);
     }
