@@ -16,6 +16,7 @@ import java.net.URISyntaxException;
 import java.util.EnumSet;
 import java.util.Iterator;
 
+import org.talend.components.azure.common.excel.ExcelFormat;
 import org.talend.components.azure.common.exception.BlobRuntimeException;
 import org.talend.components.azure.common.service.AzureComponentServices;
 import org.talend.components.azure.dataset.AzureBlobDataset;
@@ -63,7 +64,9 @@ public abstract class BlobFileReader {
 
         Iterable<ListBlobItem> blobItems = container.listBlobs(directoryName, false, EnumSet.noneOf(BlobListingDetails.class),
                 null, AzureComponentServices.getTalendOperationContext());
-
+        if (!blobItems.iterator().hasNext()) {
+            throw new BlobRuntimeException("Folder doesn't exist/is empty");
+        }
         this.iterator = initItemRecordIterator(blobItems);
     }
 
@@ -98,23 +101,17 @@ public abstract class BlobFileReader {
             switch (config.getFileFormat()) {
             case CSV:
                 return new CSVBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-            // FIXME uncomment it when excel will be ready to integrate
-
             case AVRO:
                 return new AvroBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-            /*
-             * case EXCEL: {
-             * if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
-             * return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-             * } else {
-             * return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-             * }
-             * }
-             */
 
+            case EXCEL:
+                if (config.getExcelOptions().getExcelFormat() == ExcelFormat.HTML) {
+                    return new ExcelHTMLBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
+                } else {
+                    return new ExcelBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
+                }
             case PARQUET:
                 return new ParquetBlobFileReader(config, recordBuilderFactory, connectionServices, messageService);
-
             default:
                 throw new IllegalArgumentException("Unsupported file format"); // shouldn't be here
             }

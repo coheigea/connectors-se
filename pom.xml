@@ -18,7 +18,7 @@
 
     <groupId>org.talend.components</groupId>
     <artifactId>connectors-se</artifactId>
-    <version>1.3.0-SNAPSHOT</version>
+    <version>1.7.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Components</name>
@@ -37,11 +37,19 @@
         <module>salesforce</module>
         <module>couchbase</module>
         <module>azure</module>
+        <module>rest</module>
         <!-- disable eventhubs build before all ready
-        <module>azure-eventhubs</module> 
-        -->
+	<module>azure-eventhubs</module> 
+	-->
+
         <module>azure-dls-gen2</module>
         <module>marketo</module>
+        <module>common</module>
+        <module>common-stream-io</module>
+        <module>connectors-test-bom</module>
+        <module>bigquery</module>
+        <module>workday</module>
+        <module>pubsub</module>
     </modules>
 
     <scm>
@@ -66,20 +74,24 @@
     </distributionManagement>
 
     <properties>
+        <connectors-test-bom.version>1.7.0-SNAPSHOT</connectors-test-bom.version>
+        <common.version>1.7.0-SNAPSHOT</common.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <component-runtime.version>1.1.9</component-runtime.version>
+        <locales.version>[1.7,)</locales.version>
+
+        <component-runtime.version>1.1.15</component-runtime.version>
         <slf4j.version>1.7.25</slf4j.version>
 
         <beam.version>2.12.0</beam.version>
-        <jackson.version>2.9.9</jackson.version>
+        <jackson.version>2.10.1</jackson.version>
         <jackson-codehaus.version>1.9.14-TALEND</jackson-codehaus.version>
 
         <tcomp0.version>0.23.2</tcomp0.version> <!-- until they are rewritten -->
         <daikon.version>0.31.0</daikon.version>
 
         <junit5.version>5.5.1</junit5.version>
-
         <surefire.version>3.0.0-M3</surefire.version>
         <jacoco.version>0.8.2</jacoco.version>
 
@@ -91,10 +103,10 @@
         </talend_oss_snapshots>
 
         <frontend.version>1.7.5</frontend.version>
-        <node.version>v10.15.3</node.version>
+        <node.version>v12.13.1</node.version>
         <yarn.version>v1.15.2</yarn.version>
-        <spotbugs.version>3.1.12</spotbugs.version>
-
+        <spotbugs.version>4.0.0-RC1</spotbugs.version>
+        <spotbugs-maven-plugin.version>3.1.12.2</spotbugs-maven-plugin.version>
         <spotless.version>1.24.0</spotless.version>
 
         <!-- The XTM customer id that manage the translation of this project-->
@@ -159,6 +171,21 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jaxb-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-base</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
                 <artifactId>paranamer</artifactId>
                 <version>2.7</version>
@@ -183,29 +210,23 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>org.apache.beam</groupId>
-                <artifactId>beam-runners-direct-java</artifactId>
-                <version>${beam.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.talend.sdk.component</groupId>
-                <artifactId>component-runtime-beam</artifactId>
-                <version>${component-runtime.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.talend.sdk.component</groupId>
-                <artifactId>component-runtime-beam-junit</artifactId>
-                <version>${component-runtime.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.talend.daikon</groupId>
                 <artifactId>daikon</artifactId>
                 <version>${daikon.version}</version>
                 <classifier>tests</classifier>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.components</groupId>
+                <artifactId>connectors-test-bom</artifactId>
+                <version>${connectors-test-bom.version}</version>
+                <type>pom</type>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.talend.components</groupId>
+                <artifactId>common</artifactId>
+                <version>${common.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -213,7 +234,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.8</version>
+            <version>1.18.10</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -228,7 +249,12 @@
             <version>${slf4j.version}</version>
             <scope>provided</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.25</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.talend.sdk.component</groupId>
             <artifactId>component-runtime-junit</artifactId>
@@ -239,18 +265,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <version>${junit5.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit5.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.25</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -405,6 +419,13 @@
                 <version>${component-runtime.version}</version>
                 <executions>
                     <execution>
+                        <id>talend-dita-documentation</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>dita</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>talend-dependencies</id>
                         <phase>process-classes</phase>
                         <goals>
@@ -419,6 +440,7 @@
                         </goals>
                         <configuration>
                             <validateModel>${validation.model}</validateModel>
+                            <validatePlaceholder>false</validatePlaceholder>
                         </configuration>
                     </execution>
                     <execution>
@@ -483,11 +505,11 @@
                 <version>${spotless.version}</version>
                 <executions>
                     <execution>
-                    <id>apply</id>
-                    <phase>process-classes</phase>
-                    <goals>
-                    <goal>apply</goal>
-                    </goals>
+                        <id>apply</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>apply</goal>
+                        </goals>
                     </execution>
                 </executions>
                 <configuration>
@@ -495,7 +517,7 @@
                         <encoding>UTF-8</encoding>
                         <licenseHeader>
                             <content><![CDATA[/*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -508,7 +530,7 @@
 */]]></content>
                         </licenseHeader>
                         <eclipse>
-			    <file>talend_java_eclipse_formatter.xml</file>
+                            <file>talend_java_eclipse_formatter.xml</file>
                         </eclipse>
                     </java>
                 </configuration>
@@ -525,7 +547,6 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
                 <configuration>
-                    <forkCount>1</forkCount>
                     <reuseForks>true</reuseForks>
                     <trimStackTrace>false</trimStackTrace>
                     <runOrder>alphabetical</runOrder>
@@ -534,6 +555,7 @@
                             https://artifacts-zl.talend.com/nexus/content/groups/public
                         </talend.component.junit.maven.repositories>
                     </systemPropertyVariables>
+                    <argLine>-Dfile.encoding=UTF-8</argLine>
                 </configuration>
             </plugin>
             <plugin>
@@ -614,17 +636,31 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>${spotbugs.version}</version>
+                <version>${spotbugs-maven-plugin.version}</version>
                 <executions>
                     <execution>
-                        <phase>compile</phase>
-                        <goals><goal>check</goal></goals>
-                        <configuration>
-                            <effort>Max</effort>
-                            <failOnError>false</failOnError>
-                        </configuration>
+                        <!--
+                        Late late late, this is so slow that it shouldn't even be.
+                        To ensure it is still seen by dev we put it before "package" but ultimately it should be at "verify" phase.
+                        -->
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <effort>Max</effort>
+                    <failOnError>false</failOnError>
+                    <jvmArgs>-Dspotbugs.experimental.multiThread=false</jvmArgs> <!-- for now it is buggy -->
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs</artifactId>
+                        <version>${spotbugs.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             <!-- to push to gihub pages if desired
             <plugin>
@@ -681,7 +717,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>${spotbugs.version}</version>
+                <version>${spotbugs-maven-plugin.version}</version>
             </plugin>
         </plugins>
     </reporting>
