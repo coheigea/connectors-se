@@ -81,6 +81,11 @@ public class NetSuiteOutputProcessor implements Serializable {
 
     private transient List<Record> inputRecordList;
 
+    /**
+     * Netsuite output has a limitation of 200 records for an output component
+     */
+    private static int MAX_OUTPUT_BATCH_SIZE = 200;
+
     public NetSuiteOutputProcessor(@Option("configuration") final NetSuiteOutputProperties configuration,
             RecordBuilderFactory recordBuilderFactory, Messages i18n, NetSuiteService netSuiteService,
             NetSuiteClientConnectionService netSuiteClientConnectionService) {
@@ -153,9 +158,15 @@ public class NetSuiteOutputProcessor implements Serializable {
         if (recordList.isEmpty()) {
             return;
         }
-        List<Object> nsObjectList = recordList.stream().map(transducer::write).collect(toList());
-        dataActionFunction.apply(nsObjectList).forEach(this::processWriteResponse);
-        inputRecordList.clear();
+
+        int processed = 0;
+        while (processed < recordList.size()) {
+            List<Object> nsObjectList = recordList.stream().skip(processed).limit(MAX_OUTPUT_BATCH_SIZE).map(transducer::write)
+                    .collect(toList());
+            processed += MAX_OUTPUT_BATCH_SIZE;
+            dataActionFunction.apply(nsObjectList).forEach(this::processWriteResponse);
+            inputRecordList.clear();
+        }
     }
 
     private void processWriteResponse(NsWriteResponse<?> response) {
