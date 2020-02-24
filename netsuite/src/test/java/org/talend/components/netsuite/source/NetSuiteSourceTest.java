@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.talend.components.netsuite.NetSuiteBaseTest;
@@ -129,13 +128,13 @@ public class NetSuiteSourceTest extends NetSuiteBaseTest {
     }
 
     @Test
-    @Disabled
+    // @Disabled
     @DisplayName("Partition input data")
     void partitionInputDataTest() {
         log.info("Test 'partition input data' start ");
         String testIdPrefix = "PartitionInputDataTest_";
         int concurrency = 5;
-        int numberOfRecords = 500;
+        int numberOfRecords = 501;
         NetSuiteInputProperties inputProperties = createInputProperties();
         NetSuiteDataSet dataSet = inputProperties.getDataSet();
         NetSuiteOutputProperties outputProperties = createOutputProperties();
