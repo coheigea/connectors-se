@@ -35,7 +35,7 @@ public class OperationKey implements Serializable {
     @Option
     @ActiveIfs(operator = OR, value = {
             @ActiveIf(target = "../../dataset.connection.dbType", value = { "SQLDWH" }, negate = true),
-            @ActiveIf(target = "../../actionOnData", value = { "INSERT", "BULK_LOAD" }, negate = true) })
+            @ActiveIf(target = "../../actionOnData", value = { "BULK_LOAD" }, negate = true) })
     @Suggestable(value = ACTION_SUGGESTION_TABLE_COLUMNS_NAMES, parameters = { "../../dataset" })
     @Documentation("List of columns to be used as keys for this operation")
     private List<String> keys = new ArrayList<>();
