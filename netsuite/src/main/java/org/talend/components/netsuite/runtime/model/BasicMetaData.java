@@ -12,6 +12,17 @@
  */
 package org.talend.components.netsuite.runtime.model;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+
 import org.talend.components.netsuite.runtime.NetSuiteErrorCode;
 import org.talend.components.netsuite.runtime.NsObjectTransducer;
 import org.talend.components.netsuite.runtime.client.NetSuiteException;
@@ -25,6 +36,7 @@ import org.talend.components.netsuite.runtime.model.customfield.DefaultCustomFie
 import org.talend.components.netsuite.runtime.model.customfield.EntityCustomFieldAdapter;
 import org.talend.components.netsuite.runtime.model.customfield.ItemCustomFieldAdapter;
 import org.talend.components.netsuite.runtime.model.customfield.ItemOptionCustomFieldAdapter;
+import org.talend.components.netsuite.runtime.model.customfield.OtherCustomFieldAdapter;
 import org.talend.components.netsuite.runtime.model.customfield.TransactionBodyCustomFieldAdapter;
 import org.talend.components.netsuite.runtime.model.customfield.TransactionColumnCustomFieldAdapter;
 import org.talend.components.netsuite.runtime.model.search.SearchBooleanFieldAdapter;
@@ -42,17 +54,6 @@ import org.talend.components.netsuite.runtime.model.search.SearchMultiSelectFiel
 import org.talend.components.netsuite.runtime.model.search.SearchStringFieldAdapter;
 import org.talend.components.netsuite.runtime.model.search.SearchTextNumberFieldAdapter;
 import org.talend.components.netsuite.service.Messages;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
 
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
@@ -212,13 +213,13 @@ public abstract class BasicMetaData {
         bindCustomFieldAdapter(new EntityCustomFieldAdapter<>());
         bindCustomFieldAdapter(new ItemCustomFieldAdapter<>());
         bindCustomFieldAdapter(new ItemOptionCustomFieldAdapter<>());
+        bindCustomFieldAdapter(new OtherCustomFieldAdapter<>());
         bindCustomFieldAdapter(new TransactionBodyCustomFieldAdapter<>());
         bindCustomFieldAdapter(new TransactionColumnCustomFieldAdapter<>());
         bindCustomFieldAdapter(new DefaultCustomFieldAdapter<>(BasicRecordType.CUSTOM_LIST, false));
         bindCustomFieldAdapter(new DefaultCustomFieldAdapter<>(BasicRecordType.CUSTOM_RECORD, true));
         bindCustomFieldAdapter(new DefaultCustomFieldAdapter<>(BasicRecordType.CUSTOM_RECORD_TYPE, true));
         bindCustomFieldAdapter(new DefaultCustomFieldAdapter<>(BasicRecordType.CUSTOM_TRANSACTION_TYPE, true));
-        bindCustomFieldAdapter(new DefaultCustomFieldAdapter<>(BasicRecordType.OTHER_CUSTOM_FIELD, false));
         bindCustomFieldAdapter(new DefaultCustomFieldAdapter<>(BasicRecordType.ITEM_NUMBER_CUSTOM_FIELD, false));
     }
 
