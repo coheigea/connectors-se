@@ -65,7 +65,7 @@ public class DynamicsCrmConnection implements Serializable {
 
     @Option
     @Credential
-    @ActiveIf(target = "appType", value = "Web")
+    @ActiveIf(target = "appType", value = "WEB")
     @Documentation("Client secret")
     private String clientSecret;
 
