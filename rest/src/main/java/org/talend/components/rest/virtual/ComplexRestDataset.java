@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2006-2019 Talend Inc. - www.talend.com
+ * Copyright (C) 2006-2020 Talend Inc. - www.talend.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,6 +13,7 @@
 package org.talend.components.rest.virtual;
 
 import lombok.Data;
+import org.talend.components.extension.polling.api.PollableDuplicateDataset;
 import org.talend.components.rest.configuration.RequestConfig;
 import org.talend.components.rest.processor.JSonExtractorConfiguration;
 import org.talend.sdk.component.api.component.Version;
@@ -28,6 +29,7 @@ import java.io.Serializable;
 @DataSet("Dataset")
 @GridLayout({ @GridLayout.Row({ "restConfiguration" }) })
 @GridLayout(names = GridLayout.FormType.ADVANCED, value = { @GridLayout.Row({ "restConfiguration" }) })
+@PollableDuplicateDataset
 public class ComplexRestDataset implements Serializable {
 
     @Option
