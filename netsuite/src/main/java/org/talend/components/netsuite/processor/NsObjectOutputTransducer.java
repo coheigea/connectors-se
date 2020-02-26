@@ -71,9 +71,6 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
      * @return NetSuite data object
      */
     public Object write(Record record) {
-        Map<String, FieldDesc> fieldMap = typeDesc.getFieldMap();
-        BeanInfo beanInfo = Beans.getBeanInfo(typeDesc.getTypeClass());
-
         String targetTypeName;
         if (recordTypeInfo != null && !reference) {
             RecordTypeDesc recordTypeDesc = recordTypeInfo.getRecordType();
@@ -81,15 +78,20 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
         } else {
             targetTypeName = typeDesc.getTypeName();
         }
-
         Object nsObject = basicMetaData.createInstance(targetTypeName);
 
-        // Names of fields to be null'ed.
         Set<String> nullFieldNames = new HashSet<>();
 
-        // Custom fields by names.
-        Map<String, Object> customFieldMap = Collections.emptyMap();
+        writeFields(nsObject, nullFieldNames, record);
+        processReference(nsObject, nullFieldNames);
+        setNullFields(nsObject, nullFieldNames);
 
+        return nsObject;
+    }
+
+    private void writeFields(Object nsObject, Set<String> nullFieldNames, Record record) {
+        BeanInfo beanInfo = Beans.getBeanInfo(typeDesc.getTypeClass());
+        Map<String, Object> customFieldMap = Collections.emptyMap();
         if (!reference && beanInfo.getProperty(CUSTOM_FIELD_LIST) != null) {
             customFieldMap = new HashMap<>();
 
@@ -105,6 +107,7 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
 
         Map<String, Entry> targetSchema = new HashMap<>();
         schema.getEntries().forEach(entry -> targetSchema.put(entry.getName(), entry));
+        Map<String, FieldDesc> fieldMap = typeDesc.getFieldMap();
 
         for (Entry entry : record.getSchema().getEntries()) {
             Entry targetEntry = targetSchema.get(entry.getName());
@@ -131,9 +134,9 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
             }
             writeField(nsObject, fieldDesc, customFieldMap, nullFieldNames, value);
         }
+    }
 
-        // Set record type identification data
-
+    private void processReference(Object nsObject, Set<String> nullFieldNames) {
         if (reference) {
             if (recordTypeInfo.getRefType() == RefType.RECORD_REF) {
                 FieldDesc recTypeFieldDesc = typeDesc.getField(TYPE);
@@ -166,16 +169,15 @@ public class NsObjectOutputTransducer extends NsObjectTransducer {
                 writeSimpleField(nsObject, recTypeFieldDesc.asSimple(), false, nullFieldNames, recordRefNode.toString());
             }
         }
+    }
 
-        // Set null fields
-
+    private void setNullFields(Object nsObject, Set<String> nullFieldNames) {
+        BeanInfo beanInfo = Beans.getBeanInfo(typeDesc.getTypeClass());
         if (!nullFieldNames.isEmpty() && beanInfo.getProperty(NULL_FIELD_LIST) != null) {
             Object nullFieldListWrapper = basicMetaData.createInstance(NULL_FIELD);
             Beans.setSimpleProperty(nsObject, NULL_FIELD_LIST, nullFieldListWrapper);
             List<String> nullFields = (List<String>) Beans.getSimpleProperty(nullFieldListWrapper, NAME);
             nullFields.addAll(nullFieldNames);
         }
-
-        return nsObject;
     }
 }
